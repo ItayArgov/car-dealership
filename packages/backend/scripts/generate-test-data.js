@@ -30,16 +30,16 @@ function generateSKU(make, model, year, color) {
 }
 
 // Generate valid cars for insert
-function generateValidInsertData() {
+function generateValidInsertData(count = 20) {
 	const cars = [];
-	for (let i = 0; i < 20; i++) {
+	for (let i = 0; i < count; i++) {
 		const make = MAKES[i % MAKES.length];
 		const modelOptions = MODELS[make];
 		const model = modelOptions[i % modelOptions.length];
-		const year = 2020 + (i % 5);
+		const year = 2015 + (i % 10); // Years from 2015-2024
 		const color = VALID_COLORS[i % VALID_COLORS.length];
-		const price = 20000 + i * 2500;
-		const sku = generateSKU(make, model, year, color);
+		const price = 20000 + (i * 1000) + Math.floor(Math.random() * 5000);
+		const sku = `${generateSKU(make, model, year, color)}-${String(i).padStart(3, '0')}`;
 
 		cars.push({ sku, model, make, price, year, color });
 	}
@@ -164,7 +164,8 @@ function createExcelFile(data, filename) {
 // Main execution
 console.log("Generating test Excel files...\n");
 
-const validInsertCars = generateValidInsertData();
+// Generate 200 cars for testing pagination
+const validInsertCars = generateValidInsertData(200);
 const validUpdateCars = generateValidUpdateData(validInsertCars);
 const invalidInsertCars = generateInvalidInsertData();
 const invalidUpdateCars = generateInvalidUpdateData(validInsertCars);

@@ -1,4 +1,4 @@
-import { Table, Button, Text, Box, Loader, Center } from "@mantine/core";
+import { Table, Button, Text, Box, Loader, Center, ScrollArea } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import type { Car } from "@dealership/common/models";
 
@@ -28,7 +28,8 @@ export function CarsTable({ cars, isLoading, onEdit }: CarsTableProps) {
 	}
 
 	return (
-		<Table striped highlightOnHover withTableBorder withColumnBorders>
+		<ScrollArea h={600}>
+			<Table striped highlightOnHover withTableBorder withColumnBorders stickyHeader>
 			<Table.Thead>
 				<Table.Tr>
 					<Table.Th>SKU</Table.Th>
@@ -85,5 +86,6 @@ export function CarsTable({ cars, isLoading, onEdit }: CarsTableProps) {
 				))}
 			</Table.Tbody>
 		</Table>
+		</ScrollArea>
 	);
 }

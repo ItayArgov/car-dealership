@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Container, Title, Group, Button, Box } from "@mantine/core";
+import { Container, Title, Group, Button, Box, Pagination, Text, Center } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus, IconFileUpload } from "@tabler/icons-react";
 import { CarsTable } from "./components/CarsTable";
@@ -12,8 +12,11 @@ function App() {
 	const [carModalOpened, { open: openCarModal, close: closeCarModal }] = useDisclosure(false);
 	const [excelModalOpened, { open: openExcelModal, close: closeExcelModal }] = useDisclosure(false);
 	const [selectedCar, setSelectedCar] = useState<Car | undefined>(undefined);
+	const [page, setPage] = useState(1);
 
-	const { data, isLoading } = useCars(0, 100);
+	const limit = 20;
+	const offset = (page - 1) * limit;
+	const { data, isLoading } = useCars(offset, limit);
 
 	const handleCreateCar = () => {
 		setSelectedCar(undefined);
@@ -29,6 +32,11 @@ function App() {
 		setSelectedCar(undefined);
 		closeCarModal();
 	};
+
+	const total = data?.total || 0;
+	const totalPages = Math.ceil(total / limit);
+	const startItem = total === 0 ? 0 : offset + 1;
+	const endItem = Math.min(offset + limit, total);
 
 	return (
 		<Container size="xl" py="xl">
@@ -55,6 +63,24 @@ function App() {
 				isLoading={isLoading}
 				onEdit={handleEditCar}
 			/>
+
+			{!isLoading && total > 0 && (
+				<Box mt="md">
+					<Center>
+						<Group gap="xl">
+							<Text size="sm" c="dimmed">
+								Showing {startItem}-{endItem} of {total} cars
+							</Text>
+							<Pagination
+								value={page}
+								onChange={setPage}
+								total={totalPages}
+								disabled={isLoading}
+							/>
+						</Group>
+					</Center>
+				</Box>
+			)}
 
 			<CarModal
 				opened={carModalOpened}
