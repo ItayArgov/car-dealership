@@ -1,6 +1,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextInput, NumberInput, Select, Button, Stack } from "@mantine/core";
+import { YearPickerInput } from "@mantine/dates";
 import { CreateCarSchema, UpdateCarDataSchema } from "@dealership/common/schemas";
 import { CAR_COLORS } from "@dealership/common/constants";
 import type { Car } from "@dealership/common/models";
@@ -71,6 +72,7 @@ export function CarForm({ car, onSubmit, isSubmitting }: CarFormProps) {
 							prefix="$"
 							thousandSeparator=","
 							min={0}
+							hideControls
 							required
 							withAsterisk
 						/>
@@ -81,14 +83,14 @@ export function CarForm({ car, onSubmit, isSubmitting }: CarFormProps) {
 					name="year"
 					control={control}
 					render={({ field }) => (
-						<NumberInput
+						<YearPickerInput
 							label="Year"
-							placeholder="Enter year"
-							{...field}
-							onChange={(value) => field.onChange(value)}
+							placeholder="Pick year"
+							value={field.value ? new Date(field.value, 0, 1) : null}
+							onChange={(date) => field.onChange(date ? date.getFullYear() : null)}
 							error={errors.year?.message}
-							min={1900}
-							max={2100}
+							minDate={new Date(1900, 0, 1)}
+							maxDate={new Date(2100, 11, 31)}
 							required
 							withAsterisk
 						/>

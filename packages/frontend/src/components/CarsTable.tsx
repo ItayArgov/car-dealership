@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Table, Button, Text, Box, Loader, Center, ScrollArea } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import type { Car } from "@dealership/common/models";
@@ -5,10 +6,10 @@ import type { Car } from "@dealership/common/models";
 interface CarsTableProps {
 	cars: Car[];
 	isLoading?: boolean;
-	onEdit: (car: Car) => void;
 }
 
-export function CarsTable({ cars, isLoading, onEdit }: CarsTableProps) {
+export function CarsTable({ cars, isLoading }: CarsTableProps) {
+	const navigate = useNavigate();
 	if (isLoading) {
 		return (
 			<Center h={200}>
@@ -77,7 +78,7 @@ export function CarsTable({ cars, isLoading, onEdit }: CarsTableProps) {
 								color="blue"
 								size="xs"
 								leftSection={<IconEdit size={16} />}
-								onClick={() => onEdit(car)}
+								onClick={() => navigate(`/cars/${car.sku}/edit`)}
 							>
 								Edit
 							</Button>

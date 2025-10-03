@@ -11,7 +11,8 @@ export interface BatchOperationRequest {
 
 // Response types
 export interface CarError {
-	sku: string;
+	row?: number; // Excel row number if from Excel parsing
+	sku?: string; // SKU if available
 	errors: string[];
 }
 
@@ -34,6 +35,6 @@ export interface ExcelRowError {
 }
 
 export interface ParseCarDataResult {
-	validCars: CreateCarInput[];
+	validCars: CreateCarRequest[];
 	errors: ExcelRowError[];
 }

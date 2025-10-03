@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import { CreateCarSchema } from "@dealership/common/schemas";
-import type { CreateCarInput, ExcelRowError, ParseCarDataResult } from "@dealership/common/types";
+import type { CreateCarRequest, ExcelRowError, ParseCarDataResult } from "@dealership/common/types";
 
 const MAX_ROWS = 10000;
 
@@ -48,7 +48,7 @@ export function parseExcelFile(buffer: Buffer): ParsedExcelResult {
  * Returns valid cars and errors for invalid rows
  */
 export function validateAndParseCarData(data: unknown[]): ParseCarDataResult {
-	const validCars: CreateCarInput[] = [];
+	const validCars: CreateCarRequest[] = [];
 	const errors: ExcelRowError[] = [];
 
 	data.forEach((row, index) => {

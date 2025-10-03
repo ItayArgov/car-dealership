@@ -116,9 +116,16 @@ export async function bulkInsertCars(cars: CreateCarRequest[]): Promise<BatchOpe
 				const failedCar = cars[error.index];
 				if (!failedCar) continue;
 
+				// Extract meaningful error message from MongoDB error
+				let errorMessage = error.errmsg || "Unknown error";
+				// Simplify duplicate key error message
+				if (error.code === MongoErrorCode.DUPLICATE_KEY) {
+					errorMessage = `Duplicate SKU "${failedCar.sku}" already exists`;
+				}
+
 				response.failed.push({
 					sku: failedCar.sku,
-					errors: [error.errmsg || "Unknown error"],
+					errors: [errorMessage],
 				});
 			}
 		}
@@ -191,9 +198,16 @@ export async function bulkUpdateCars(cars: CreateCarRequest[]): Promise<BatchOpe
 				const failedCar = cars[error.index];
 				if (!failedCar) continue;
 
+				// Extract meaningful error message
+				let errorMessage = error.errmsg || "Unknown error";
+				// Simplify error messages if possible
+				if (error.code === MongoErrorCode.DUPLICATE_KEY) {
+					errorMessage = `Duplicate SKU "${failedCar.sku}" already exists`;
+				}
+
 				response.failed.push({
 					sku: failedCar.sku,
-					errors: [error.errmsg || "Unknown error"],
+					errors: [errorMessage],
 				});
 			}
 		}
