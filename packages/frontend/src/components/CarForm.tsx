@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextInput, NumberInput, Select, Button, Stack } from "@mantine/core";
 import { CreateCarSchema, UpdateCarDataSchema } from "@dealership/common/schemas";
@@ -18,6 +18,7 @@ export function CarForm({ car, onSubmit, isSubmitting }: CarFormProps) {
 
 	const {
 		register,
+		control,
 		handleSubmit,
 		formState: { errors },
 	} = useForm({
@@ -57,40 +58,60 @@ export function CarForm({ car, onSubmit, isSubmitting }: CarFormProps) {
 					withAsterisk
 				/>
 
-				<NumberInput
-					label="Price"
-					placeholder="Enter price"
-					{...register("price", { valueAsNumber: true })}
-					error={errors.price?.message}
-					prefix="$"
-					thousandSeparator=","
-					min={0}
-					required
-					withAsterisk
+				<Controller
+					name="price"
+					control={control}
+					render={({ field }) => (
+						<NumberInput
+							label="Price"
+							placeholder="Enter price"
+							{...field}
+							onChange={(value) => field.onChange(value)}
+							error={errors.price?.message}
+							prefix="$"
+							thousandSeparator=","
+							min={0}
+							required
+							withAsterisk
+						/>
+					)}
 				/>
 
-				<NumberInput
-					label="Year"
-					placeholder="Enter year"
-					{...register("year", { valueAsNumber: true })}
-					error={errors.year?.message}
-					min={1900}
-					max={2100}
-					required
-					withAsterisk
+				<Controller
+					name="year"
+					control={control}
+					render={({ field }) => (
+						<NumberInput
+							label="Year"
+							placeholder="Enter year"
+							{...field}
+							onChange={(value) => field.onChange(value)}
+							error={errors.year?.message}
+							min={1900}
+							max={2100}
+							required
+							withAsterisk
+						/>
+					)}
 				/>
 
-				<Select
-					label="Color"
-					placeholder="Select color"
-					{...register("color")}
-					error={errors.color?.message}
-					data={CAR_COLORS.map((color) => ({
-						value: color,
-						label: color.charAt(0).toUpperCase() + color.slice(1),
-					}))}
-					required
-					withAsterisk
+				<Controller
+					name="color"
+					control={control}
+					render={({ field }) => (
+						<Select
+							label="Color"
+							placeholder="Select color"
+							{...field}
+							error={errors.color?.message}
+							data={CAR_COLORS.map((color) => ({
+								value: color,
+								label: color.charAt(0).toUpperCase() + color.slice(1),
+							}))}
+							required
+							withAsterisk
+						/>
+					)}
 				/>
 
 				<Button type="submit" loading={isSubmitting} fullWidth mt="md">
