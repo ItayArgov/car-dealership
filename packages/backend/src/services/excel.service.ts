@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
-import { CreateCarSchema } from "@dealership/common/schemas";
-import type { CreateCarRequest, ExcelRowError, ParseCarDataResult } from "@dealership/common/types";
+import { createCarSchema } from "@dealership/common/schemas";
+import type { CreateCarRequest, CarError, ParseCarDataResult } from "@dealership/common/types";
 import { ValidationError } from "~/utils/errors";
 
 const MAX_ROWS = 10000;
@@ -12,33 +12,26 @@ interface ParsedExcelResult {
 
 /**
  * Parse Excel file to raw data
- * @throws ValidationError if parsing fails or too many rows
+ * @throws ValidationError if no worksheets or too many rows
  */
 export function parseExcelFile(buffer: Buffer): ParsedExcelResult {
-	try {
-		const workbook = XLSX.read(buffer);
+	const workbook = XLSX.read(buffer);
 
-		const sheetName = workbook.SheetNames[0];
-		if (!sheetName) {
-			throw new ValidationError("Excel file contains no worksheets");
-		}
-
-		const worksheet = workbook.Sheets[sheetName];
-		const data = XLSX.utils.sheet_to_json(worksheet);
-
-		if (data.length > MAX_ROWS) {
-			throw new ValidationError(
-				`Excel file contains ${data.length} rows, which exceeds the maximum of ${MAX_ROWS} rows`,
-			);
-		}
-
-		return { data, sheetName };
-	} catch (error) {
-		if (error instanceof ValidationError) {
-			throw error;
-		}
-		throw new ValidationError("Failed to parse Excel file");
+	const sheetName = workbook.SheetNames[0];
+	if (!sheetName) {
+		throw new ValidationError("Excel file contains no worksheets");
 	}
+
+	const worksheet = workbook.Sheets[sheetName];
+	const data = XLSX.utils.sheet_to_json(worksheet);
+
+	if (data.length > MAX_ROWS) {
+		throw new ValidationError(
+			`Excel file contains ${data.length} rows, which exceeds the maximum of ${MAX_ROWS} rows`,
+		);
+	}
+
+	return { data, sheetName };
 }
 
 /**
@@ -47,12 +40,12 @@ export function parseExcelFile(buffer: Buffer): ParsedExcelResult {
  */
 export function validateAndParseCarData(data: unknown[]): ParseCarDataResult {
 	const validCars: CreateCarRequest[] = [];
-	const errors: ExcelRowError[] = [];
+	const errors: CarError[] = [];
 
 	data.forEach((row, index) => {
 		const rowNumber = index + 2; // +1 for 0-index, +1 for header row
 
-		const result = CreateCarSchema.safeParse(row);
+		const result = createCarSchema.safeParse(row);
 
 		if (result.success) {
 			validCars.push(result.data);

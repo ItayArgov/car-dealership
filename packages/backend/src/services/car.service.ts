@@ -14,50 +14,49 @@ import { NotFoundError, DuplicateError } from "~/utils/errors";
 
 const carsCollection = db.collection<CarDocument>("cars");
 
-/**
- * Find which SKUs from the input already exist in the database (duplicates)
- * Used by bulkInsertCars to identify insert failures
- */
-async function findDuplicateSkus(
-	cars: CreateCarRequest[],
-): Promise<{ sku: string; errors: string[] }[]> {
-	const skus = cars.map((car) => car.sku);
-	const existingCars = await carsCollection.find({ sku: { $in: skus } }).toArray();
-	const existingSkus = new Set(existingCars.map((car) => car.sku));
+type CarOperationFailure = { sku: string; errors: string[] };
 
-	const failures: { sku: string; errors: string[] }[] = [];
-	for (const car of cars) {
-		if (existingSkus.has(car.sku)) {
-			failures.push({
-				sku: car.sku,
+/**
+ * Extract duplicate key errors from MongoBulkWriteError
+ * Returns the SKUs that failed due to duplicate key constraint
+ */
+function extractDuplicateErrors(error: MongoBulkWriteError): CarOperationFailure[] {
+	const duplicateFailures: CarOperationFailure[] = [];
+
+	const writeErrors = Array.isArray(error.writeErrors) ? error.writeErrors : [error.writeErrors];
+
+	for (const writeError of writeErrors) {
+		if (writeError.err?.code === MongoErrorCode.DUPLICATE_KEY) {
+			const doc = writeError.err.op as CarDocument;
+			duplicateFailures.push({
+				sku: doc.sku,
 				errors: ["This SKU already exists in the database"],
 			});
 		}
 	}
-	return failures;
+
+	return duplicateFailures;
 }
 
 /**
  * Find which SKUs from the input don't exist in the database (not found)
  * Used by bulkUpdateCars to identify update failures
  */
-async function findMissingSkus(
-	cars: CreateCarRequest[],
-): Promise<{ sku: string; errors: string[] }[]> {
+async function findMissingSkus(cars: CreateCarRequest[]): Promise<CarOperationFailure[]> {
 	const skus = cars.map((car) => car.sku);
 	const existingCars = await carsCollection.find({ sku: { $in: skus }, deletedAt: null }).toArray();
 	const existingSkus = new Set(existingCars.map((car) => car.sku));
 
-	const failures: { sku: string; errors: string[] }[] = [];
+	const notFoundFailures: CarOperationFailure[] = [];
 	for (const car of cars) {
 		if (!existingSkus.has(car.sku)) {
-			failures.push({
+			notFoundFailures.push({
 				sku: car.sku,
 				errors: [`Car with SKU "${car.sku}" not found`],
 			});
 		}
 	}
-	return failures;
+	return notFoundFailures;
 }
 
 /**
@@ -95,13 +94,8 @@ export async function createCar(car: CreateCarRequest): Promise<Car> {
 		};
 
 		const result = await carsCollection.insertOne(carWithTimestamps as CarDocument);
-		const inserted = await carsCollection.findOne({ _id: result.insertedId });
 
-		if (!inserted) {
-			throw new Error("Failed to retrieve inserted car");
-		}
-
-		return toCarModel(inserted);
+		return toCarModel({ _id: result.insertedId, ...carWithTimestamps });
 	} catch (error) {
 		if (error instanceof MongoError && error.code === MongoErrorCode.DUPLICATE_KEY) {
 			throw new DuplicateError(`Car with SKU "${car.sku}" already exists`);
@@ -187,13 +181,7 @@ export async function bulkInsertCars(cars: CreateCarRequest[]): Promise<BatchOpe
 	try {
 		const result = await carsCollection.bulkWrite(operations, { ordered: false });
 		response.inserted = result.insertedCount;
-
-		// If some operations failed, find which SKUs already exist
-		const failedCount = cars.length - result.insertedCount;
-		if (failedCount > 0) {
-			const failures = await findDuplicateSkus(cars);
-			response.failed.push(...failures);
-		}
+		// If all succeeded, no duplicates to report
 	} catch (error) {
 		// Only handle MongoBulkWriteError - some might have succeeded
 		if (!(error instanceof MongoBulkWriteError)) {
@@ -202,8 +190,8 @@ export async function bulkInsertCars(cars: CreateCarRequest[]): Promise<BatchOpe
 
 		response.inserted = error.result.insertedCount || 0;
 
-		// Find which SKUs already exist (duplicates that caused the failure)
-		const failures = await findDuplicateSkus(cars);
+		// Extract duplicate key errors from the write errors
+		const failures = extractDuplicateErrors(error);
 		response.failed.push(...failures);
 	}
 

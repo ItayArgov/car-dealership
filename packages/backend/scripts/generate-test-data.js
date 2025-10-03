@@ -216,7 +216,7 @@ function generateInvalidUpdateData(validInsertCars) {
 		// Negative price
 		{ sku: skus[1], model: "Accord", make: "Honda", price: -10000, year: 2023, color: "blue" },
 		// Invalid year (too old)
-		{ sku: skus[2], model: "Civic", make: "Honda", price: 25000, year: 1900, color: "red" },
+		{ sku: skus[2], model: "Civic", make: "Honda", price: 25000, year: 1800, color: "red" },
 		// Invalid year (future)
 		{ sku: skus[3], model: "Model 3", make: "Tesla", price: 45000, year: 2040, color: "white" },
 		// Missing model
@@ -248,6 +248,15 @@ function generateInvalidUpdateData(validInsertCars) {
 		{ sku: skus[3], model: "Model 3", make: "Tesla", price: 0, year: 2023, color: "white" },
 		// Null values
 		{ sku: skus[4], model: null, make: "Ford", price: 35000, year: 2023, color: "black" },
+		// Non-existent SKU (should fail with not found error)
+		{
+			sku: "NONEXIST-SKU-9999-XXX",
+			model: "Ghost",
+			make: "Phantom",
+			price: 99999,
+			year: 2023,
+			color: "black",
+		},
 	];
 }
 

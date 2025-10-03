@@ -1,8 +1,7 @@
 import { z } from "zod";
 import { CAR_COLORS, MIN_YEAR, MAX_YEAR } from "../constants/car.constants";
 
-// Base Car schema with all validations (excluding timestamps - managed by backend)
-export const CarSchema = z.object({
+export const carSchema = z.object({
 	sku: z.string().min(1, "SKU is required").trim(),
 	model: z.string().min(1, "Model is required").trim(),
 	make: z.string().min(1, "Make is required").trim(),
@@ -17,13 +16,10 @@ export const CarSchema = z.object({
 	}),
 });
 
-// For creating a new car - excludes timestamps (managed by backend)
-export const CreateCarSchema = CarSchema;
+export const createCarSchema = carSchema;
 
-// For updating a car - SKU comes from URL path, not payload (PUT semantics - full replacement)
-export const UpdateCarDataSchema = CarSchema.omit({ sku: true });
+export const updateCarDataSchema = carSchema.omit({ sku: true });
 
-// Infer types for use in TypeScript
-export type CarSchemaType = z.infer<typeof CarSchema>;
-export type CreateCarInput = z.infer<typeof CreateCarSchema>;
-export type UpdateCarData = z.infer<typeof UpdateCarDataSchema>;
+export type CarSchemaType = z.infer<typeof carSchema>;
+export type CreateCarInput = z.infer<typeof createCarSchema>;
+export type UpdateCarData = z.infer<typeof updateCarDataSchema>;

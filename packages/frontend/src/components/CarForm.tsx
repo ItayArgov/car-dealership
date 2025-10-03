@@ -1,7 +1,7 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextInput, Button, Stack, Group } from "@mantine/core";
-import { CreateCarSchema, UpdateCarDataSchema } from "@dealership/common/schemas";
+import { createCarSchema, updateCarDataSchema } from "@dealership/common/schemas";
 import type { Car } from "@dealership/common/models";
 import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
 import { CarCommonFields, SkuCreateField } from "./CarFields";
@@ -29,7 +29,7 @@ export function CreateCarForm({
 	readOnly = false,
 }: Omit<Extract<CarFormProps, { car?: undefined }>, "car">) {
 	const methods = useForm<CreateCarRequest>({
-		resolver: zodResolver(CreateCarSchema),
+		resolver: zodResolver(createCarSchema),
 		defaultValues: {},
 	});
 	return (
@@ -66,7 +66,7 @@ export function EditCarForm({
 	const { sku, ...defaults } = car;
 
 	const methods = useForm<UpdateCarRequest>({
-		resolver: zodResolver(UpdateCarDataSchema),
+		resolver: zodResolver(updateCarDataSchema),
 		defaultValues: defaults,
 	});
 	return (

@@ -1,5 +1,4 @@
 export interface Car {
-	/** The unique identifier for the car */
 	sku: string;
 	model: string;
 	make: string;
