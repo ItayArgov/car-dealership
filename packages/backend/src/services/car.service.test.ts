@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
-	getAllCars,
+	getAllActiveCars,
 	getCarBySku,
 	createCar,
 	updateCar,
@@ -52,7 +52,7 @@ describe("Car Service", () => {
 
 	describe("getAllCars", () => {
 		it("should return empty result when no cars exist", async () => {
-			const result = await getAllCars();
+			const result = await getAllActiveCars();
 			expect(result.cars).toEqual([]);
 			expect(result.total).toBe(0);
 		});
@@ -75,7 +75,7 @@ describe("Car Service", () => {
 				await createCar({ ...car });
 			}
 
-			const result = await getAllCars();
+			const result = await getAllActiveCars();
 
 			expect(result.cars).toHaveLength(3);
 			expect(result.total).toBe(3);

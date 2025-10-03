@@ -63,7 +63,7 @@ async function findMissingSkus(
 /**
  * Get all cars from the database with pagination
  */
-export async function getAllCars(offset = 0, limit = 50): Promise<GetAllCarsResponse> {
+export async function getAllActiveCars(offset = 0, limit = 50): Promise<GetAllCarsResponse> {
 	const filter = { deletedAt: null };
 	const [docs, total] = await Promise.all([
 		carsCollection.find(filter).skip(offset).limit(limit).toArray(),

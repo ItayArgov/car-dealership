@@ -6,6 +6,8 @@ import {
 	validateCreateCar,
 	validateUpdateCar,
 	validateExcelFile,
+	validatePagination,
+	validateSkuParam,
 } from "~/middleware/validation.middleware";
 
 const cars = new Hono();
@@ -13,12 +15,10 @@ const cars = new Hono();
 /**
  * GET /api/cars - Get all cars with pagination
  */
-cars.get("/", async (c) => {
+cars.get("/", validatePagination, async (c) => {
 	try {
-		const offset = Math.max(0, Number.parseInt(c.req.query("offset") || "0"));
-		const limit = Math.min(100, Math.max(1, Number.parseInt(c.req.query("limit") || "50")));
-
-		const result = await carService.getAllCars(offset, limit);
+		const { offset, limit } = c.req.valid("query");
+		const result = await carService.getAllActiveCars(offset, limit);
 
 		return c.json({
 			cars: result.cars,
@@ -35,9 +35,9 @@ cars.get("/", async (c) => {
 /**
  * GET /api/cars/:sku - Get single car by SKU
  */
-cars.get("/:sku", async (c) => {
+cars.get("/:sku", validateSkuParam, async (c) => {
 	try {
-		const sku = c.req.param("sku");
+		const { sku } = c.req.valid("param");
 		const car = await carService.getCarBySku(sku);
 
 		if (!car) {
@@ -73,8 +73,8 @@ cars.put("/:sku", validateUpdateCar, async (c) => {
 /**
  * DELETE /api/cars/:sku - Soft delete a car
  */
-cars.delete("/:sku", async (c) => {
-	const sku = c.req.param("sku");
+cars.delete("/:sku", validateSkuParam, async (c) => {
+	const { sku } = c.req.valid("param");
 	const car = await carService.softDeleteCar(sku);
 	return c.json({ message: "Car deleted successfully", car });
 });

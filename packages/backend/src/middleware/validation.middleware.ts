@@ -2,14 +2,8 @@ import { zValidator } from "@hono/zod-validator";
 import { CreateCarSchema, UpdateCarDataSchema } from "@dealership/common/schemas";
 import { z } from "zod";
 
-/**
- * Middleware for validating create car request
- */
 export const validateCreateCar = zValidator("json", CreateCarSchema);
 
-/**
- * Middleware for validating update car request
- */
 export const validateUpdateCar = zValidator("json", UpdateCarDataSchema);
 
 /**
@@ -28,7 +22,23 @@ const ExcelFileSchema = z.object({
 		),
 });
 
-/**
- * Middleware for validating Excel file upload
- */
 export const validateExcelFile = zValidator("form", ExcelFileSchema);
+
+/**
+ * Schema for pagination query parameters
+ */
+const PaginationQuerySchema = z.object({
+	offset: z.coerce.number().int().min(0).default(0),
+	limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+export const validatePagination = zValidator("query", PaginationQuerySchema);
+
+/**
+ * Schema for SKU path parameter
+ */
+const SkuParamSchema = z.object({
+	sku: z.string().min(1, "SKU is required"),
+});
+
+export const validateSkuParam = zValidator("param", SkuParamSchema);
