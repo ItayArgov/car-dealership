@@ -14,7 +14,13 @@ import {
 	Button,
 } from "@mantine/core";
 import { Dropzone } from "@mantine/dropzone";
-import { IconFileSpreadsheet, IconUpload, IconX, IconArrowLeft, IconCheck } from "@tabler/icons-react";
+import {
+	IconFileSpreadsheet,
+	IconUpload,
+	IconX,
+	IconArrowLeft,
+	IconCheck,
+} from "@tabler/icons-react";
 import { useExcelInsert, useExcelUpdate } from "../hooks/useExcelUpload";
 import type { BatchOperationResponse } from "@dealership/common/types";
 
@@ -39,9 +45,10 @@ export function ExcelUploadPage() {
 		if (!selectedFile) return;
 
 		try {
-			const data = mode === "insert"
-				? await excelInsert.mutateAsync(selectedFile)
-				: await excelUpdate.mutateAsync(selectedFile);
+			const data =
+				mode === "insert"
+					? await excelInsert.mutateAsync(selectedFile)
+					: await excelUpdate.mutateAsync(selectedFile);
 			setResult(data);
 			setSelectedFile(null); // Clear file after upload
 		} catch (error) {
@@ -139,7 +146,12 @@ export function ExcelUploadPage() {
 											Size: {(selectedFile.size / 1024).toFixed(2)} KB
 										</Text>
 									</div>
-									<Button variant="subtle" size="xs" onClick={handleClearFile} disabled={isUploading}>
+									<Button
+										variant="subtle"
+										size="xs"
+										onClick={handleClearFile}
+										disabled={isUploading}
+									>
 										Clear
 									</Button>
 								</Group>

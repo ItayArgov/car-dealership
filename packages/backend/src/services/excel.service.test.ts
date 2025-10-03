@@ -19,7 +19,9 @@ describe("Excel Service", () => {
 		it("should throw error for empty workbook", () => {
 			const workbook = XLSX.utils.book_new();
 			// XLSX.write throws "Workbook is empty" before we can check
-			expect(() => XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' })).toThrow("Workbook is empty");
+			expect(() => XLSX.write(workbook, { type: "buffer", bookType: "xlsx" })).toThrow(
+				"Workbook is empty",
+			);
 		});
 
 		it("should parse valid Excel file with correct data", () => {
@@ -52,7 +54,9 @@ describe("Excel Service", () => {
 			XLSX.utils.book_append_sheet(wb, ws, "Cars");
 			const buffer = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
 
-			expect(() => parseExcelFile(buffer)).toThrow("Excel file contains 10001 rows, which exceeds the maximum of 10000 rows");
+			expect(() => parseExcelFile(buffer)).toThrow(
+				"Excel file contains 10001 rows, which exceeds the maximum of 10000 rows",
+			);
 		});
 
 		it("should handle empty Excel file", () => {
@@ -129,7 +133,16 @@ describe("Excel Service", () => {
 		});
 
 		it("should handle invalid color", () => {
-			const invalidData = [{ sku: "TEST-001", model: "Camry", make: "Toyota", price: 25000, year: 2023, color: "purple" }];
+			const invalidData = [
+				{
+					sku: "TEST-001",
+					model: "Camry",
+					make: "Toyota",
+					price: 25000,
+					year: 2023,
+					color: "purple",
+				},
+			];
 
 			const result = validateAndParseCarData(invalidData);
 
@@ -139,7 +152,16 @@ describe("Excel Service", () => {
 		});
 
 		it("should handle negative price", () => {
-			const invalidData = [{ sku: "TEST-001", model: "Camry", make: "Toyota", price: -5000, year: 2023, color: "blue" }];
+			const invalidData = [
+				{
+					sku: "TEST-001",
+					model: "Camry",
+					make: "Toyota",
+					price: -5000,
+					year: 2023,
+					color: "blue",
+				},
+			];
 
 			const result = validateAndParseCarData(invalidData);
 
@@ -149,7 +171,16 @@ describe("Excel Service", () => {
 		});
 
 		it("should handle invalid year (too old)", () => {
-			const invalidData = [{ sku: "TEST-001", model: "Camry", make: "Toyota", price: 25000, year: 1800, color: "blue" }];
+			const invalidData = [
+				{
+					sku: "TEST-001",
+					model: "Camry",
+					make: "Toyota",
+					price: 25000,
+					year: 1800,
+					color: "blue",
+				},
+			];
 
 			const result = validateAndParseCarData(invalidData);
 
@@ -160,7 +191,16 @@ describe("Excel Service", () => {
 
 		it("should handle invalid year (too future)", () => {
 			const currentYear = new Date().getFullYear();
-			const invalidData = [{ sku: "TEST-001", model: "Camry", make: "Toyota", price: 25000, year: currentYear + 10, color: "blue" }];
+			const invalidData = [
+				{
+					sku: "TEST-001",
+					model: "Camry",
+					make: "Toyota",
+					price: 25000,
+					year: currentYear + 10,
+					color: "blue",
+				},
+			];
 
 			const result = validateAndParseCarData(invalidData);
 
@@ -171,7 +211,14 @@ describe("Excel Service", () => {
 
 		it("should handle type errors (string instead of number)", () => {
 			const invalidData = [
-				{ sku: "TEST-001", model: "Camry", make: "Toyota", price: "expensive" as any, year: 2023, color: "blue" },
+				{
+					sku: "TEST-001",
+					model: "Camry",
+					make: "Toyota",
+					price: "expensive" as any,
+					year: 2023,
+					color: "blue",
+				},
 			];
 
 			const result = validateAndParseCarData(invalidData);
@@ -182,7 +229,9 @@ describe("Excel Service", () => {
 		});
 
 		it("should handle empty string values", () => {
-			const invalidData = [{ sku: "", model: "Camry", make: "Toyota", price: 25000, year: 2023, color: "blue" }];
+			const invalidData = [
+				{ sku: "", model: "Camry", make: "Toyota", price: 25000, year: 2023, color: "blue" },
+			];
 
 			const result = validateAndParseCarData(invalidData);
 
@@ -192,7 +241,9 @@ describe("Excel Service", () => {
 		});
 
 		it("should handle zero price", () => {
-			const invalidData = [{ sku: "TEST-001", model: "Camry", make: "Toyota", price: 0, year: 2023, color: "blue" }];
+			const invalidData = [
+				{ sku: "TEST-001", model: "Camry", make: "Toyota", price: 0, year: 2023, color: "blue" },
+			];
 
 			const result = validateAndParseCarData(invalidData);
 
@@ -210,9 +261,30 @@ describe("Excel Service", () => {
 
 		it("should handle mixed valid and invalid rows", () => {
 			const mixedData = [
-				{ sku: "VALID-001", model: "Camry", make: "Toyota", price: 25000, year: 2023, color: "blue" },
-				{ sku: "INVALID-001", model: "Accord", make: "Honda", price: -1000, year: 2023, color: "red" },
-				{ sku: "VALID-002", model: "Civic", make: "Honda", price: 22000, year: 2022, color: "green" },
+				{
+					sku: "VALID-001",
+					model: "Camry",
+					make: "Toyota",
+					price: 25000,
+					year: 2023,
+					color: "blue",
+				},
+				{
+					sku: "INVALID-001",
+					model: "Accord",
+					make: "Honda",
+					price: -1000,
+					year: 2023,
+					color: "red",
+				},
+				{
+					sku: "VALID-002",
+					model: "Civic",
+					make: "Honda",
+					price: 22000,
+					year: 2022,
+					color: "green",
+				},
 			];
 
 			const result = validateAndParseCarData(mixedData);

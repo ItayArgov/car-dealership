@@ -27,7 +27,9 @@ export function parseExcelFile(buffer: Buffer): ParsedExcelResult {
 		const data = XLSX.utils.sheet_to_json(worksheet);
 
 		if (data.length > MAX_ROWS) {
-			throw new ValidationError(`Excel file contains ${data.length} rows, which exceeds the maximum of ${MAX_ROWS} rows`);
+			throw new ValidationError(
+				`Excel file contains ${data.length} rows, which exceeds the maximum of ${MAX_ROWS} rows`,
+			);
 		}
 
 		return { data, sheetName };
@@ -55,7 +57,8 @@ export function validateAndParseCarData(data: unknown[]): ParseCarDataResult {
 		if (result.success) {
 			validCars.push(result.data);
 		} else {
-			const sku = typeof row === "object" && row !== null && "sku" in row ? String(row.sku) : undefined;
+			const sku =
+				typeof row === "object" && row !== null && "sku" in row ? String(row.sku) : undefined;
 
 			const errorMessages = result.error.issues.map((err) => {
 				const path = err.path.length > 0 ? `${err.path.join(".")}: ` : "";

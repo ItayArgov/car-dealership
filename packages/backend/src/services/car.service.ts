@@ -1,5 +1,10 @@
 import type { Car } from "@dealership/common/models";
-import type { CreateCarRequest, UpdateCarRequest, BatchOperationResponse, GetAllCarsResponse } from "@dealership/common/types";
+import type {
+	CreateCarRequest,
+	UpdateCarRequest,
+	BatchOperationResponse,
+	GetAllCarsResponse,
+} from "@dealership/common/types";
 import type { CarDocument } from "~/types/car.types";
 import { MongoError, MongoBulkWriteError } from "mongodb";
 import db from "~/db";
@@ -13,7 +18,9 @@ const carsCollection = db.collection<CarDocument>("cars");
  * Find which SKUs from the input already exist in the database (duplicates)
  * Used by bulkInsertCars to identify insert failures
  */
-async function findDuplicateSkus(cars: CreateCarRequest[]): Promise<{ sku: string; errors: string[] }[]> {
+async function findDuplicateSkus(
+	cars: CreateCarRequest[],
+): Promise<{ sku: string; errors: string[] }[]> {
 	const skus = cars.map((car) => car.sku);
 	const existingCars = await carsCollection.find({ sku: { $in: skus } }).toArray();
 	const existingSkus = new Set(existingCars.map((car) => car.sku));
@@ -34,7 +41,9 @@ async function findDuplicateSkus(cars: CreateCarRequest[]): Promise<{ sku: strin
  * Find which SKUs from the input don't exist in the database (not found)
  * Used by bulkUpdateCars to identify update failures
  */
-async function findMissingSkus(cars: CreateCarRequest[]): Promise<{ sku: string; errors: string[] }[]> {
+async function findMissingSkus(
+	cars: CreateCarRequest[],
+): Promise<{ sku: string; errors: string[] }[]> {
 	const skus = cars.map((car) => car.sku);
 	const existingCars = await carsCollection.find({ sku: { $in: skus }, deletedAt: null }).toArray();
 	const existingSkus = new Set(existingCars.map((car) => car.sku));
@@ -56,7 +65,10 @@ async function findMissingSkus(cars: CreateCarRequest[]): Promise<{ sku: string;
  */
 export async function getAllCars(offset = 0, limit = 50): Promise<GetAllCarsResponse> {
 	const filter = { deletedAt: null };
-	const [docs, total] = await Promise.all([carsCollection.find(filter).skip(offset).limit(limit).toArray(), carsCollection.countDocuments(filter)]);
+	const [docs, total] = await Promise.all([
+		carsCollection.find(filter).skip(offset).limit(limit).toArray(),
+		carsCollection.countDocuments(filter),
+	]);
 	return { cars: toCarModels(docs), total, offset, limit };
 }
 

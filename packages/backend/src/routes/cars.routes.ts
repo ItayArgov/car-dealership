@@ -2,7 +2,11 @@ import { Hono } from "hono";
 import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
 import * as carService from "~/services/car.service";
 import * as excelService from "~/services/excel.service";
-import { validateCreateCar, validateUpdateCar, validateExcelFile } from "~/middleware/validation.middleware";
+import {
+	validateCreateCar,
+	validateUpdateCar,
+	validateExcelFile,
+} from "~/middleware/validation.middleware";
 
 const cars = new Hono();
 

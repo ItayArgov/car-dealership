@@ -1,5 +1,13 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { getAllCars, getCarBySku, createCar, updateCar, softDeleteCar, bulkInsertCars, bulkUpdateCars } from "./car.service";
+import {
+	getAllCars,
+	getCarBySku,
+	createCar,
+	updateCar,
+	softDeleteCar,
+	bulkInsertCars,
+	bulkUpdateCars,
+} from "./car.service";
 import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
 import db from "~/db";
 
@@ -53,7 +61,14 @@ describe("Car Service", () => {
 			const carsData: CreateCarRequest[] = [
 				{ sku: "CAR-001", make: "Toyota", model: "Camry", year: 2024, color: "blue", price: 30000 },
 				{ sku: "CAR-002", make: "Honda", model: "Accord", year: 2023, color: "red", price: 28000 },
-				{ sku: "CAR-003", make: "Ford", model: "Mustang", year: 2024, color: "yellow", price: 45000 },
+				{
+					sku: "CAR-003",
+					make: "Ford",
+					model: "Mustang",
+					year: 2024,
+					color: "yellow",
+					price: 45000,
+				},
 			];
 
 			for (const car of carsData) {
@@ -110,7 +125,9 @@ describe("Car Service", () => {
 				price: 32000,
 			};
 
-			await expect(updateCar("NONEXISTENT", updateData)).rejects.toThrow('Car with SKU "NONEXISTENT" not found');
+			await expect(updateCar("NONEXISTENT", updateData)).rejects.toThrow(
+				'Car with SKU "NONEXISTENT" not found',
+			);
 		});
 
 		it("should update existing car", async () => {
@@ -147,7 +164,9 @@ describe("Car Service", () => {
 
 	describe("softDeleteCar", () => {
 		it("should throw NotFoundError when car does not exist", async () => {
-			await expect(softDeleteCar("NONEXISTENT")).rejects.toThrow('Car with SKU "NONEXISTENT" not found');
+			await expect(softDeleteCar("NONEXISTENT")).rejects.toThrow(
+				'Car with SKU "NONEXISTENT" not found',
+			);
 		});
 
 		it("should soft delete existing car", async () => {
@@ -183,8 +202,22 @@ describe("Car Service", () => {
 
 		it("should insert new cars", async () => {
 			const cars: CreateCarRequest[] = [
-				{ sku: "BATCH-001", make: "Toyota", model: "Camry", year: 2024, color: "blue", price: 30000 },
-				{ sku: "BATCH-002", make: "Honda", model: "Accord", year: 2023, color: "red", price: 28000 },
+				{
+					sku: "BATCH-001",
+					make: "Toyota",
+					model: "Camry",
+					year: 2024,
+					color: "blue",
+					price: 30000,
+				},
+				{
+					sku: "BATCH-002",
+					make: "Honda",
+					model: "Accord",
+					year: 2023,
+					color: "red",
+					price: 28000,
+				},
 			];
 
 			const result = await bulkInsertCars(cars);
@@ -261,7 +294,14 @@ describe("Car Service", () => {
 
 		it("should fail when updating non-existent cars", async () => {
 			const cars: CreateCarRequest[] = [
-				{ sku: "NONEXIST-001", make: "Toyota", model: "Camry", year: 2024, color: "blue", price: 30000 },
+				{
+					sku: "NONEXIST-001",
+					make: "Toyota",
+					model: "Camry",
+					year: 2024,
+					color: "blue",
+					price: 30000,
+				},
 			];
 
 			const result = await bulkUpdateCars(cars);
@@ -282,8 +322,22 @@ describe("Car Service", () => {
 			});
 
 			const cars: CreateCarRequest[] = [
-				{ sku: "UPDATE-001", make: "Toyota", model: "Camry", year: 2025, color: "red", price: 32000 },
-				{ sku: "NOTFOUND-001", make: "Honda", model: "Accord", year: 2024, color: "white", price: 29000 },
+				{
+					sku: "UPDATE-001",
+					make: "Toyota",
+					model: "Camry",
+					year: 2025,
+					color: "red",
+					price: 32000,
+				},
+				{
+					sku: "NOTFOUND-001",
+					make: "Honda",
+					model: "Accord",
+					year: 2024,
+					color: "white",
+					price: 29000,
+				},
 			];
 
 			const result = await bulkUpdateCars(cars);

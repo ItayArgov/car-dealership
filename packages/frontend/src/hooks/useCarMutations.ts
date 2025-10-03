@@ -36,7 +36,8 @@ export function useUpdateCar() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: ({ sku, data }: { sku: string; data: UpdateCarRequest }) => api.updateCar(sku, data),
+		mutationFn: ({ sku, data }: { sku: string; data: UpdateCarRequest }) =>
+			api.updateCar(sku, data),
 		onSuccess: (_, variables) => {
 			// Invalidate both the list and the individual car query
 			queryClient.invalidateQueries({ queryKey: ["cars"] });

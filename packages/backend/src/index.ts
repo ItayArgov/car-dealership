@@ -13,7 +13,9 @@ app.use("*", cors());
 
 app.get("/message", async (c) => {
 	const carCount = await db.collection<Car>("cars").countDocuments();
-	return c.json({ message: `Welcome to the Car Dealership! We have ${carCount} car${carCount === 1 ? "" : "s"} in catalog` });
+	return c.json({
+		message: `Welcome to the Car Dealership! We have ${carCount} car${carCount === 1 ? "" : "s"} in catalog`,
+	});
 });
 
 app.route("/cars", carsRoutes);
@@ -54,52 +56,51 @@ async function initializeDb() {
 	}
 
 	// Unique index on SKU for active cars only (allows reusing SKU after deletion)
-	await db.collection<Car>("cars").createIndex(
-		{ sku: 1 },
-		{ unique: true, partialFilterExpression: { deletedAt: { $in: [null] } } }
-	);
-
-	// Partial index for efficient queries of active cars (where deletedAt is null)
-	await db.collection<Car>("cars").createIndex(
-		{ deletedAt: 1 },
-		{ partialFilterExpression: { deletedAt: { $in: [null] } } }
-	);
-
-	const now = new Date();
 	await db
 		.collection<Car>("cars")
-		.replaceOne(
-			{ sku: "Delorean-DMC-12" },
-			{
-				sku: "Delorean-DMC-12",
-				model: "DMC-12",
-				make: "Delorean",
-				price: 100000,
-				year: 1981,
-				color: "silver",
-				createdAt: now,
-				updatedAt: now,
-			},
-			{ upsert: true }
+		.createIndex(
+			{ sku: 1 },
+			{ unique: true, partialFilterExpression: { deletedAt: { $in: [null] } } },
 		);
+
+	// Partial index for efficient queries of active cars (where deletedAt is null)
+	await db
+		.collection<Car>("cars")
+		.createIndex({ deletedAt: 1 }, { partialFilterExpression: { deletedAt: { $in: [null] } } });
+
+	const now = new Date();
+	await db.collection<Car>("cars").replaceOne(
+		{ sku: "Delorean-DMC-12" },
+		{
+			sku: "Delorean-DMC-12",
+			model: "DMC-12",
+			make: "Delorean",
+			price: 100000,
+			year: 1981,
+			color: "silver",
+			createdAt: now,
+			updatedAt: now,
+		},
+		{ upsert: true },
+	);
 }
 
 await client.connect();
 await initializeDb();
 serve({ fetch: app.fetch, port: 3000 }, (info) => {
-    console.log(`Server is running on http://localhost:${info.port}`);
+	console.log(`Server is running on http://localhost:${info.port}`);
 });
 
 // Graceful shutdown
 const shutdown = async (signal: NodeJS.Signals) => {
-    console.log(`\nReceived ${signal}. Shutting down gracefully...`);
-    try {
-        await client.close();
-    } catch (err) {
-        console.error("Error during Mongo disconnect:", err);
-    } finally {
-        process.exit(0);
-    }
+	console.log(`\nReceived ${signal}. Shutting down gracefully...`);
+	try {
+		await client.close();
+	} catch (err) {
+		console.error("Error during Mongo disconnect:", err);
+	} finally {
+		process.exit(0);
+	}
 };
 
 process.on("SIGINT", shutdown);

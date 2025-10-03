@@ -20,8 +20,11 @@ const ExcelFileSchema = z.object({
 		.file()
 		.max(10 * 1024 * 1024, "File size exceeds maximum allowed size of 10MB")
 		.mime(
-			["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"],
-			"Invalid file type. Only .xlsx and .xls files are allowed"
+			[
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				"application/vnd.ms-excel",
+			],
+			"Invalid file type. Only .xlsx and .xls files are allowed",
 		),
 });
 

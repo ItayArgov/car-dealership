@@ -7,7 +7,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const VALID_COLORS = ["red", "blue", "green", "yellow", "silver", "black", "white"];
-const MAKES = ["Toyota", "Ford", "Honda", "Tesla", "BMW", "Mercedes", "Audi", "Chevrolet", "Nissan", "Mazda"];
+const MAKES = [
+	"Toyota",
+	"Ford",
+	"Honda",
+	"Tesla",
+	"BMW",
+	"Mercedes",
+	"Audi",
+	"Chevrolet",
+	"Nissan",
+	"Mazda",
+];
 const MODELS = {
 	Toyota: ["Camry", "Corolla", "RAV4", "Highlander"],
 	Ford: ["Mustang", "F-150", "Explorer", "Bronco"],
@@ -38,8 +49,8 @@ function generateValidInsertData(count = 20) {
 		const model = modelOptions[i % modelOptions.length];
 		const year = 2015 + (i % 10); // Years from 2015-2024
 		const color = VALID_COLORS[i % VALID_COLORS.length];
-		const price = 20000 + (i * 1000) + Math.floor(Math.random() * 5000);
-		const sku = `${generateSKU(make, model, year, color)}-${String(i).padStart(3, '0')}`;
+		const price = 20000 + i * 1000 + Math.floor(Math.random() * 5000);
+		const sku = `${generateSKU(make, model, year, color)}-${String(i).padStart(3, "0")}`;
 
 		cars.push({ sku, model, make, price, year, color });
 	}
@@ -74,32 +85,123 @@ function generateInvalidInsertData() {
 		// Missing color
 		{ sku: "INVA-LID-2023-BLA", model: "Camry", make: "Toyota", price: 25000, year: 2023 },
 		// Invalid color
-		{ sku: "INVA-LID-2023-PUR", model: "Camry", make: "Toyota", price: 25000, year: 2023, color: "purple" },
+		{
+			sku: "INVA-LID-2023-PUR",
+			model: "Camry",
+			make: "Toyota",
+			price: 25000,
+			year: 2023,
+			color: "purple",
+		},
 		// Negative price
-		{ sku: "INVA-LID-2023-ORA", model: "Camry", make: "Toyota", price: -5000, year: 2023, color: "blue" },
+		{
+			sku: "INVA-LID-2023-ORA",
+			model: "Camry",
+			make: "Toyota",
+			price: -5000,
+			year: 2023,
+			color: "blue",
+		},
 		// Invalid year (too old)
-		{ sku: "INVA-LID-1800-BLU", model: "Camry", make: "Toyota", price: 25000, year: 1800, color: "blue" },
+		{
+			sku: "INVA-LID-1800-BLU",
+			model: "Camry",
+			make: "Toyota",
+			price: 25000,
+			year: 1800,
+			color: "blue",
+		},
 		// Invalid year (future)
-		{ sku: "INVA-LID-2030-RED", model: "Camry", make: "Toyota", price: 25000, year: 2030, color: "red" },
+		{
+			sku: "INVA-LID-2030-RED",
+			model: "Camry",
+			make: "Toyota",
+			price: 25000,
+			year: 2030,
+			color: "red",
+		},
 		// Price as string
-		{ sku: "INVA-LID-2023-GRE", model: "Camry", make: "Toyota", price: "twenty-five thousand", year: 2023, color: "green" },
+		{
+			sku: "INVA-LID-2023-GRE",
+			model: "Camry",
+			make: "Toyota",
+			price: "twenty-five thousand",
+			year: 2023,
+			color: "green",
+		},
 		// Year as string
-		{ sku: "INVA-LID-YEAR-YEL", model: "Camry", make: "Toyota", price: 25000, year: "twenty twenty three", color: "yellow" },
+		{
+			sku: "INVA-LID-YEAR-YEL",
+			model: "Camry",
+			make: "Toyota",
+			price: 25000,
+			year: "twenty twenty three",
+			color: "yellow",
+		},
 		// Empty SKU
 		{ sku: "", model: "Camry", make: "Toyota", price: 25000, year: 2023, color: "silver" },
 		// Empty model
-		{ sku: "INVA-LID-2023-BLA", model: "", make: "Toyota", price: 25000, year: 2023, color: "black" },
+		{
+			sku: "INVA-LID-2023-BLA",
+			model: "",
+			make: "Toyota",
+			price: 25000,
+			year: 2023,
+			color: "black",
+		},
 		// Empty make
-		{ sku: "INVA-LID-2023-WHT", model: "Camry", make: "", price: 25000, year: 2023, color: "white" },
+		{
+			sku: "INVA-LID-2023-WHT",
+			model: "Camry",
+			make: "",
+			price: 25000,
+			year: 2023,
+			color: "white",
+		},
 		// Duplicate SKU (same as first invalid)
-		{ sku: "DUPL-ICA-2023-RED", model: "Accord", make: "Honda", price: 28000, year: 2023, color: "red" },
-		{ sku: "DUPL-ICA-2023-RED", model: "Civic", make: "Honda", price: 22000, year: 2023, color: "red" },
+		{
+			sku: "DUPL-ICA-2023-RED",
+			model: "Accord",
+			make: "Honda",
+			price: 28000,
+			year: 2023,
+			color: "red",
+		},
+		{
+			sku: "DUPL-ICA-2023-RED",
+			model: "Civic",
+			make: "Honda",
+			price: 22000,
+			year: 2023,
+			color: "red",
+		},
 		// Zero price
-		{ sku: "INVA-LID-ZERO-BLU", model: "Camry", make: "Toyota", price: 0, year: 2023, color: "blue" },
+		{
+			sku: "INVA-LID-ZERO-BLU",
+			model: "Camry",
+			make: "Toyota",
+			price: 0,
+			year: 2023,
+			color: "blue",
+		},
 		// Null values
-		{ sku: "INVA-LID-NULL-RED", model: null, make: "Toyota", price: 25000, year: 2023, color: "red" },
+		{
+			sku: "INVA-LID-NULL-RED",
+			model: null,
+			make: "Toyota",
+			price: 25000,
+			year: 2023,
+			color: "red",
+		},
 		// Extra invalid color
-		{ sku: "INVA-LID-PINK-GRE", model: "Camry", make: "Toyota", price: 25000, year: 2023, color: "pink" },
+		{
+			sku: "INVA-LID-PINK-GRE",
+			model: "Camry",
+			make: "Toyota",
+			price: 25000,
+			year: 2023,
+			color: "pink",
+		},
 	];
 }
 
@@ -132,7 +234,14 @@ function generateInvalidUpdateData(validInsertCars) {
 		// Price as string
 		{ sku: skus[0], model: "Camry", make: "Toyota", price: "expensive", year: 2023, color: "red" },
 		// Year as string
-		{ sku: skus[1], model: "Accord", make: "Honda", price: 28000, year: "two thousand twenty three", color: "blue" },
+		{
+			sku: skus[1],
+			model: "Accord",
+			make: "Honda",
+			price: 28000,
+			year: "two thousand twenty three",
+			color: "blue",
+		},
 		// Invalid color name
 		{ sku: skus[2], model: "Civic", make: "Honda", price: 25000, year: 2023, color: "magenta" },
 		// Zero price
@@ -177,6 +286,8 @@ createExcelFile(invalidUpdateCars, "cars-invalid-update.xlsx");
 
 console.log("\n✓ All test files generated in test-data/ folder");
 console.log(`  - cars-valid-insert.xlsx: ${validInsertCars.length} valid cars for insertion`);
-console.log(`  - cars-valid-update.xlsx: ${validUpdateCars.length} valid updates (same SKUs, modified data)`);
+console.log(
+	`  - cars-valid-update.xlsx: ${validUpdateCars.length} valid updates (same SKUs, modified data)`,
+);
 console.log(`  - cars-invalid-insert.xlsx: ${invalidInsertCars.length} invalid cars for insertion`);
 console.log(`  - cars-invalid-update.xlsx: ${invalidUpdateCars.length} invalid update attempts`);

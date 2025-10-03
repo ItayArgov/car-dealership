@@ -1,6 +1,17 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Container, Paper, Title, Button, Loader, Center, Text, Alert, Group, Switch } from "@mantine/core";
+import {
+	Container,
+	Paper,
+	Title,
+	Button,
+	Loader,
+	Center,
+	Text,
+	Alert,
+	Group,
+	Switch,
+} from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { EditCarForm } from "../components/CarForm";
 import { useCar } from "../hooks/useCars";
@@ -55,11 +66,7 @@ export function CarDetailPage() {
 	return (
 		<Container size="sm" py="xl">
 			<Group justify="space-between" align="center" mb="md">
-				<Button
-					variant="subtle"
-					leftSection={<IconArrowLeft size={16} />}
-					onClick={handleCancel}
-				>
+				<Button variant="subtle" leftSection={<IconArrowLeft size={16} />} onClick={handleCancel}>
 					Back to list
 				</Button>
 

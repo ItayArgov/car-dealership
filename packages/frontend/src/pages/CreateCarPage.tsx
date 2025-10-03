@@ -34,7 +34,11 @@ export function CreateCarPage() {
 					Create New Car
 				</Title>
 
-				<CreateCarForm onSubmit={handleSubmit} onCancel={handleCancel} isSubmitting={createCar.isPending} />
+				<CreateCarForm
+					onSubmit={handleSubmit}
+					onCancel={handleCancel}
+					isSubmitting={createCar.isPending}
+				/>
 			</Paper>
 		</Container>
 	);

@@ -32,5 +32,5 @@ createRoot(document.body).render(
 				</MantineProvider>
 			</QueryClientProvider>
 		</BrowserRouter>
-	</StrictMode>
+	</StrictMode>,
 );
