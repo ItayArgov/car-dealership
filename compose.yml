@@ -1,0 +1,13 @@
+services:
+  dealership-db:
+    container_name: Dealership-DB
+    image: mongodb/mongodb-community-server:6.0-ubi8
+    ports:
+      - "27017:27017"
+    volumes:
+      - dealership_db_data:/data/db
+      - dealership_db_configdb_data:/data/configdb
+
+volumes:
+  dealership_db_data:
+  dealership_db_configdb_data:
