@@ -10,6 +10,7 @@
     "test:run": "vitest run"
   },
   "dependencies": {
+    "@dealership/common": "workspace:*",
     "@hono/node-server": "^1.19.5",
     "@hono/zod-validator": "^0.7.3",
     "hono": "^4.9.9",

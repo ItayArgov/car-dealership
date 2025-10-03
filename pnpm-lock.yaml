@@ -10,6 +10,9 @@ importers:
 
   packages/backend:
     dependencies:
+      '@dealership/common':
+        specifier: workspace:*
+        version: link:../common
       '@hono/node-server':
         specifier: ^1.19.5
         version: 1.19.5(hono@4.9.9)
@@ -60,6 +63,9 @@ importers:
 
   packages/frontend:
     dependencies:
+      '@dealership/common':
+        specifier: workspace:*
+        version: link:../common
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.63.0(react@19.1.1))
