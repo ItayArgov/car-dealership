@@ -10,7 +10,7 @@ import { MongoError, MongoBulkWriteError } from "mongodb";
 import db from "~/db";
 import { toCarModel, toCarModels } from "~/types/car.types";
 import { MongoErrorCode } from "~/constants/mongo-errors";
-import { NotFoundError, DuplicateError } from "~/utils/errors";
+import { NotFoundError, DuplicateError } from "./errors";
 
 const carsCollection = db.collection<CarDocument>("cars");
 

@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
-import * as carService from "~/services/car.service";
-import * as excelService from "~/services/excel.service";
+import * as carService from "~/services/car";
+import * as excelService from "~/services/excel";
 import {
 	validateCreateCar,
 	validateUpdateCar,

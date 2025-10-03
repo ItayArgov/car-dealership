@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import { createCarSchema } from "@dealership/common/schemas";
 import type { CreateCarRequest, CarError, ParseCarDataResult } from "@dealership/common/types";
-import { ValidationError } from "~/utils/errors";
+import { ValidationError } from "./errors";
 
 const MAX_ROWS = 10000;
 

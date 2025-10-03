@@ -5,7 +5,8 @@ import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import db, { client } from "~/db";
 import carsRoutes from "~/routes/cars.routes";
-import { NotFoundError, DuplicateError, ValidationError } from "~/utils/errors";
+import { NotFoundError, DuplicateError } from "~/services/car";
+import { ValidationError } from "~/services/excel";
 
 const app = new Hono().basePath("/api");
 

@@ -2,9 +2,9 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
 import * as XLSX from "xlsx";
-import { parseExcelFile, validateAndParseCarData } from "./excel.service";
+import { parseExcelFile, validateAndParseCarData } from "./service";
 
-const TEST_DATA_DIR = join(__dirname, "..", "..", "..", "..", "test-data");
+const TEST_DATA_DIR = join(__dirname, "..", "..", "..", "..", "..", "test-data");
 
 describe("Excel Service", () => {
 	describe("parseExcelFile", () => {

@@ -6,28 +6,19 @@ import type { Car } from "@dealership/common/models";
 import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
 import { CarCommonFields, SkuCreateField } from "./CarFields";
 
-interface BaseCarFormProps {
+interface CreateCarFormProps {
+	onSubmit: (data: CreateCarRequest) => void | Promise<void>;
 	onCancel?: () => void;
 	isSubmitting?: boolean;
 	readOnly?: boolean;
 }
-
-type CarFormProps =
-	| (BaseCarFormProps & {
-			car?: undefined;
-			onSubmit: (data: CreateCarRequest) => void | Promise<void>;
-	  })
-	| (BaseCarFormProps & {
-			car: Car;
-			onSubmit: (data: UpdateCarRequest) => void | Promise<void>;
-	  });
 
 export function CreateCarForm({
 	onSubmit,
 	onCancel,
 	isSubmitting = false,
 	readOnly = false,
-}: Omit<Extract<CarFormProps, { car?: undefined }>, "car">) {
+}: CreateCarFormProps) {
 	const methods = useForm<CreateCarRequest>({
 		resolver: zodResolver(createCarSchema),
 		defaultValues: {},
@@ -56,13 +47,21 @@ export function CreateCarForm({
 	);
 }
 
+interface EditCarFormProps {
+	car: Car;
+	onSubmit: (data: UpdateCarRequest) => void | Promise<void>;
+	onCancel?: () => void;
+	isSubmitting?: boolean;
+	readOnly?: boolean;
+}
+
 export function EditCarForm({
 	car,
 	onSubmit,
 	onCancel,
 	isSubmitting = false,
 	readOnly = false,
-}: Extract<CarFormProps, { car: Car }>) {
+}: EditCarFormProps) {
 	const { sku, ...defaults } = car;
 
 	const methods = useForm<UpdateCarRequest>({
@@ -97,11 +96,4 @@ export function EditCarForm({
 			</form>
 		</FormProvider>
 	);
-}
-
-export function CarForm(props: CarFormProps): React.ReactElement {
-	if ("car" in props && props.car) {
-		return <EditCarForm {...props} car={props.car} />;
-	}
-	return <CreateCarForm {...props} />;
 }

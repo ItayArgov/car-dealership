@@ -7,7 +7,7 @@ import {
 	softDeleteCar,
 	bulkInsertCars,
 	bulkUpdateCars,
-} from "./car.service";
+} from "./service";
 import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
 import db from "~/db";
 

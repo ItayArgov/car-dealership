@@ -21,7 +21,8 @@ packages/
 - **Shared validation**: Zod schemas in `common/` package are used by both frontend (form validation) and backend (API validation)
 - **Type safety**: TypeScript types are shared via `common/models/` (e.g., `Car` interface)
 - **Immutable SKU**: Car SKU is the primary identifier and cannot be changed after creation
-- **Upsert pattern**: Excel uploads perform upsert operations based on SKU
+- **Soft delete pattern**: Cars are never removed from the database; deletion sets `deletedAt` timestamp
+- **Separate insert/update endpoints**: Excel uploads use distinct endpoints (`/excel/insert` vs `/excel/update`) for explicit operation control
 
 ### Backend (Hono + MongoDB)
 
@@ -42,9 +43,9 @@ packages/
 - **Forms**: react-hook-form with Zod resolver
 - **UI library**: Mantine v8
 - **Structure**:
-  - `pages/` - CarListPage, CreateCarPage, CarInfoPage
-  - `components/` - CarForm (reusable for create/edit), ExcelUpload, CarCard, Layout
-  - `hooks/` - React Query hooks (useCars, useExcelUpload)
+  - `pages/` - CarListPage, CreateCarPage, CarDetailPage
+  - `components/` - CreateCarForm, EditCarForm, ExcelUpload, CarCard, CarsTable, Layout
+  - `hooks/` - React Query hooks (useCars, useCarMutations, useExcelUpload)
   - `services/api.ts` - Axios client with typed API calls
 
 ### Common Package
@@ -115,10 +116,10 @@ node scripts/generate-test-data.js
 ```
 
 Generates 4 Excel files in `test-data/`:
-- `cars-valid-insert.xlsx` - 20 valid cars for insertion
-- `cars-valid-update.xlsx` - 20 updates (same SKUs, modified data)
+- `cars-valid-insert.xlsx` - 200 valid cars for insertion (tests pagination)
+- `cars-valid-update.xlsx` - 200 updates (same SKUs, modified data)
 - `cars-invalid-insert.xlsx` - 20 invalid records (various validation failures)
-- `cars-invalid-update.xlsx` - 15 invalid updates
+- `cars-invalid-update.xlsx` - 16 invalid updates (including non-existent SKU)
 
 ## Data Model & Business Rules
 
@@ -135,17 +136,27 @@ interface Car {
 ```
 
 ### Validation Rules
-- **SKU**: Immutable after creation, used as upsert key
+- **SKU**: Immutable after creation, used as primary identifier for lookups and updates
 - **Price**: Must be positive number
-- **Year**: Reasonable range (validate against past/future extremes)
+- **Year**: Reasonable range (MIN_YEAR = 1900, MAX_YEAR = current year + 1)
 - **Color**: Must be one of 7 predefined values
 - **All fields**: Required, non-empty
 
+### Soft Delete Pattern
+- Cars are never physically deleted from the database
+- DELETE operations set `deletedAt` timestamp on the document
+- All queries filter for `deletedAt: null` to exclude soft-deleted records
+- Allows data recovery and maintains referential integrity
+
 ### Excel Upload Behavior
+- **Two separate endpoints**:
+  - `/api/cars/excel/insert` - Insert only, fails if SKU already exists
+  - `/api/cars/excel/update` - Update only, fails if SKU doesn't exist
 - Excel format matches Car interface (headers: sku, model, make, price, year, color)
 - Each row is validated individually using Zod schema
-- Upsert logic: existing SKU = update, new SKU = insert
-- Invalid rows should be reported without blocking valid ones
+- Invalid rows are reported without blocking valid ones
+- Uses MongoDB `bulkWrite` with `ordered: false` for parallel operations
+- Returns detailed per-row errors with SKU and error messages
 
 ## Tech Stack Specifics
 
@@ -184,6 +195,30 @@ Scopes: `backend`, `frontend`, `common`, `config`, `deps`
 - **CORS**: Enabled for all origins in development
 - **No authentication**: This is a simple demo app, no auth required
 - **Excel library**: Uses SheetJS from CDN (not npm) for latest version
+
+## MCP Tools
+
+This project is configured to work with Claude Code and the following MCP servers:
+
+### context7 MCP
+Provides access to up-to-date library documentation for dependencies used in this project.
+
+**Usage:**
+1. Use `resolve-library-id` to find the Context7-compatible library ID for a package (e.g., "react", "hono", "mongodb")
+2. Use `get-library-docs` with the library ID to retrieve current documentation, code examples, and API references
+
+**Example workflow:**
+```
+User: "How do I use Hono's context binding?"
+Assistant: [Uses resolve-library-id for "hono" → gets "/honojs/hono"]
+Assistant: [Uses get-library-docs with "/honojs/hono" and topic "context binding"]
+Assistant: [Provides answer using up-to-date Hono documentation]
+```
+
+**Benefits:**
+- Always get current documentation (not limited by Claude's knowledge cutoff)
+- Access to official examples and best practices
+- Avoid deprecated API usage
 
 ## Key Files to Reference
 
