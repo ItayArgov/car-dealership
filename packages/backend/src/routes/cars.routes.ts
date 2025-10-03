@@ -52,60 +52,28 @@ cars.get("/:sku", async (c) => {
  * POST /api/cars - Create a new car
  */
 cars.post("/", validateCreateCar, async (c) => {
-	try {
-		const carData = c.req.valid("json") as CreateCarRequest;
-		const car = await carService.createCar(carData);
-
-		return c.json(car, 201);
-	} catch (error) {
-		// Check for duplicate SKU error
-		if (error instanceof Error && error.message.includes("already exists")) {
-			return c.json({ error: error.message }, 409);
-		}
-
-		console.error("Error creating car:", error);
-		return c.json({ error: "Failed to create car" }, 500);
-	}
+	const carData = c.req.valid("json") as CreateCarRequest;
+	const car = await carService.createCar(carData);
+	return c.json(car, 201);
 });
 
 /**
  * PUT /api/cars/:sku - Update an existing car
  */
 cars.put("/:sku", validateUpdateCar, async (c) => {
-	try {
-		const sku = c.req.param("sku");
-		const updateData = c.req.valid("json") as UpdateCarRequest;
-
-		const car = await carService.updateCar(sku, updateData);
-
-		if (!car) {
-			return c.json({ error: `Car with SKU "${sku}" not found` }, 404);
-		}
-
-		return c.json(car);
-	} catch (error) {
-		console.error("Error updating car:", error);
-		return c.json({ error: "Failed to update car" }, 500);
-	}
+	const sku = c.req.param("sku");
+	const updateData = c.req.valid("json") as UpdateCarRequest;
+	const car = await carService.updateCar(sku, updateData);
+	return c.json(car);
 });
 
 /**
  * DELETE /api/cars/:sku - Soft delete a car
  */
 cars.delete("/:sku", async (c) => {
-	try {
-		const sku = c.req.param("sku");
-		const car = await carService.softDeleteCar(sku);
-
-		if (!car) {
-			return c.json({ error: `Car with SKU "${sku}" not found` }, 404);
-		}
-
-		return c.json({ message: "Car deleted successfully", car });
-	} catch (error) {
-		console.error("Error deleting car:", error);
-		return c.json({ error: "Failed to delete car" }, 500);
-	}
+	const sku = c.req.param("sku");
+	const car = await carService.softDeleteCar(sku);
+	return c.json({ message: "Car deleted successfully", car });
 });
 
 /**

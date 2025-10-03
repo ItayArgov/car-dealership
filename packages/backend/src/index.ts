@@ -2,6 +2,7 @@ import type { Car } from "@dealership/common/models";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import { HTTPException } from "hono/http-exception";
 import db from "~/db";
 import carsRoutes from "~/routes/cars.routes";
 
@@ -15,6 +16,20 @@ app.get("/message", async (c) => {
 });
 
 app.route("/cars", carsRoutes);
+
+// Centralized error handler
+app.onError((err, c) => {
+	if (err instanceof HTTPException) {
+		// Handle HTTPException with custom message
+		return c.json({ error: err.message }, err.status);
+	}
+
+	// Log unexpected errors
+	console.error("Unexpected error:", err);
+
+	// Return generic error for non-HTTPException errors
+	return c.json({ error: "Internal server error" }, 500);
+});
 
 async function initializeDb() {
 	// Drop old indexes if they exist
@@ -42,11 +57,21 @@ async function initializeDb() {
 		{ partialFilterExpression: { deletedAt: { $in: [null] } } }
 	);
 
+	const now = new Date();
 	await db
 		.collection<Car>("cars")
 		.replaceOne(
 			{ sku: "Delorean-DMC-12" },
-			{ sku: "Delorean-DMC-12", model: "DMC-12", make: "Delorean", price: 100000, year: 1981, color: "silver" },
+			{
+				sku: "Delorean-DMC-12",
+				model: "DMC-12",
+				make: "Delorean",
+				price: 100000,
+				year: 1981,
+				color: "silver",
+				createdAt: now,
+				updatedAt: now,
+			},
 			{ upsert: true }
 		);
 }

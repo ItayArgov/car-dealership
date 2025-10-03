@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { getAllCars, getCarBySku, createCar, updateCar, deleteCar, bulkInsertCars, bulkUpdateCars } from "./car.service";
+import { getAllCars, getCarBySku, createCar, updateCar, softDeleteCar, bulkInsertCars, bulkUpdateCars } from "./car.service";
 import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
 import db from "~/db";
 
@@ -43,9 +43,10 @@ describe("Car Service", () => {
 	});
 
 	describe("getAllCars", () => {
-		it("should return empty array when no cars exist", async () => {
+		it("should return empty result when no cars exist", async () => {
 			const result = await getAllCars();
-			expect(result).toEqual([]);
+			expect(result.cars).toEqual([]);
+			expect(result.total).toBe(0);
 		});
 
 		it("should return all cars", async () => {
@@ -61,15 +62,16 @@ describe("Car Service", () => {
 
 			const result = await getAllCars();
 
-			expect(result).toHaveLength(3);
-			result.forEach((car) => {
+			expect(result.cars).toHaveLength(3);
+			expect(result.total).toBe(3);
+			result.cars.forEach((car) => {
 				expect(car).not.toHaveProperty("_id");
 				expect(car).toHaveProperty("createdAt");
 				expect(car).toHaveProperty("updatedAt");
 			});
 			// Check all cars are present (use objectContaining to ignore timestamps)
 			carsData.forEach((expectedCar) => {
-				expect(result).toContainEqual(expect.objectContaining(expectedCar));
+				expect(result.cars).toContainEqual(expect.objectContaining(expectedCar));
 			});
 		});
 	});
@@ -99,7 +101,7 @@ describe("Car Service", () => {
 	});
 
 	describe("updateCar", () => {
-		it("should return null when car does not exist", async () => {
+		it("should throw HTTPException when car does not exist", async () => {
 			const updateData: UpdateCarRequest = {
 				make: "Toyota",
 				model: "Camry",
@@ -108,8 +110,7 @@ describe("Car Service", () => {
 				price: 32000,
 			};
 
-			const result = await updateCar("NONEXISTENT", updateData);
-			expect(result).toBeNull();
+			await expect(updateCar("NONEXISTENT", updateData)).rejects.toThrow('Car with SKU "NONEXISTENT" not found');
 		});
 
 		it("should update existing car", async () => {
@@ -144,13 +145,12 @@ describe("Car Service", () => {
 		});
 	});
 
-	describe("deleteCar", () => {
-		it("should return false when car does not exist", async () => {
-			const result = await deleteCar("NONEXISTENT");
-			expect(result).toBe(false);
+	describe("softDeleteCar", () => {
+		it("should throw HTTPException when car does not exist", async () => {
+			await expect(softDeleteCar("NONEXISTENT")).rejects.toThrow('Car with SKU "NONEXISTENT" not found');
 		});
 
-		it("should delete existing car", async () => {
+		it("should soft delete existing car", async () => {
 			const carData: CreateCarRequest = {
 				sku: "DEL-001",
 				make: "BMW",
@@ -162,8 +162,8 @@ describe("Car Service", () => {
 
 			await createCar({ ...carData });
 
-			const deleteResult = await deleteCar("DEL-001");
-			expect(deleteResult).toBe(true);
+			const deleteResult = await softDeleteCar("DEL-001");
+			expect(deleteResult).toHaveProperty("deletedAt");
 
 			const findResult = await getCarBySku("DEL-001");
 			expect(findResult).toBeNull();

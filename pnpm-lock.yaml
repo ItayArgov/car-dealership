@@ -72,9 +72,6 @@ importers:
       '@mantine/core':
         specifier: ^8.3.2
         version: 8.3.3(@mantine/hooks@8.3.3(react@19.1.1))(@types/react@19.1.16)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@mantine/dates':
-        specifier: ^8.3.3
-        version: 8.3.3(@mantine/core@8.3.3(@mantine/hooks@8.3.3(react@19.1.1))(@types/react@19.1.16)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@mantine/hooks@8.3.3(react@19.1.1))(dayjs@1.11.18)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@mantine/dropzone':
         specifier: ^8.3.3
         version: 8.3.3(@mantine/core@8.3.3(@mantine/hooks@8.3.3(react@19.1.1))(@types/react@19.1.16)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@mantine/hooks@8.3.3(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -530,15 +527,6 @@ packages:
     resolution: {integrity: sha512-OdTAQ0lsXjEqfea0KyXJ1rV9cZb/Rtqv5l3luG2m8Sx5BTGMqXas6mKHtdj4LwIiUKeFkIkZYjNmH6ri1HXjSA==}
     peerDependencies:
       '@mantine/hooks': 8.3.3
-      react: ^18.x || ^19.x
-      react-dom: ^18.x || ^19.x
-
-  '@mantine/dates@8.3.3':
-    resolution: {integrity: sha512-eJjXXFiUDuRkZE3f0AJNSUjWAc5sjkjEYwWquxkKOdSDtd+6vzKp5Yo2AlCvcrb3XoocNFSb79w5tGmS6XYn8g==}
-    peerDependencies:
-      '@mantine/core': 8.3.3
-      '@mantine/hooks': 8.3.3
-      dayjs: '>=1.0.0'
       react: ^18.x || ^19.x
       react-dom: ^18.x || ^19.x
 
@@ -2736,15 +2724,6 @@ snapshots:
       type-fest: 4.41.0
     transitivePeerDependencies:
       - '@types/react'
-
-  '@mantine/dates@8.3.3(@mantine/core@8.3.3(@mantine/hooks@8.3.3(react@19.1.1))(@types/react@19.1.16)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@mantine/hooks@8.3.3(react@19.1.1))(dayjs@1.11.18)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
-    dependencies:
-      '@mantine/core': 8.3.3(@mantine/hooks@8.3.3(react@19.1.1))(@types/react@19.1.16)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@mantine/hooks': 8.3.3(react@19.1.1)
-      clsx: 2.1.1
-      dayjs: 1.11.18
-      react: 19.1.1
-      react-dom: 19.1.1(react@19.1.1)
 
   '@mantine/dropzone@8.3.3(@mantine/core@8.3.3(@mantine/hooks@8.3.3(react@19.1.1))(@types/react@19.1.16)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(@mantine/hooks@8.3.3(react@19.1.1))(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:

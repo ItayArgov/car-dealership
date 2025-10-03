@@ -1,7 +1,6 @@
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TextInput, NumberInput, Select, Button, Stack, Group } from "@mantine/core";
-import { YearPickerInput } from "@mantine/dates";
 import { CreateCarSchema, UpdateCarDataSchema } from "@dealership/common/schemas";
 import { CAR_COLORS } from "@dealership/common/constants";
 import type { Car } from "@dealership/common/models";
@@ -102,37 +101,22 @@ export function CarForm({ car, onSubmit, onCancel, isSubmitting, readOnly = fals
 				<Controller
 					name="year"
 					control={control}
-					render={({ field }) => {
-						// Convert year number to Date object for YearPickerInput
-						const dateValue = field.value && typeof field.value === 'number'
-							? new Date(field.value, 0, 1)
-							: null;
-
-						return (
-							<YearPickerInput
-								label="Year"
-								placeholder="Pick year"
-								value={dateValue}
-								onChange={(dateString) => {
-									// YearPickerInput returns string in "YYYY-MM-DD" format or null
-									if (!dateString) {
-										field.onChange(null);
-									} else {
-										// Parse year from "YYYY-MM-DD" string
-										const year = new Date(dateString).getFullYear();
-										field.onChange(year);
-									}
-								}}
-								error={errors.year?.message}
-								minDate={new Date(1900, 0, 1)}
-								maxDate={new Date(2100, 11, 31)}
-								required={!readOnly}
-								withAsterisk={!readOnly}
-								readOnly={readOnly}
-								variant={readOnly ? "filled" : "default"}
-							/>
-						);
-					}}
+					render={({ field }) => (
+						<NumberInput
+							label="Year"
+							placeholder="Enter year"
+							{...field}
+							onChange={(value) => field.onChange(value)}
+							error={errors.year?.message}
+							min={1900}
+							max={2100}
+							hideControls
+							required={!readOnly}
+							withAsterisk={!readOnly}
+							readOnly={readOnly}
+							variant={readOnly ? "filled" : "default"}
+						/>
+					)}
 				/>
 
 				<Controller

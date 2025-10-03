@@ -11,6 +11,18 @@ const api = axios.create({
 	baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api",
 });
 
+// Add response interceptor to extract error messages from API responses
+api.interceptors.response.use(
+	(response) => response,
+	(error) => {
+		// Extract error message from response data if available
+		if (error.response?.data?.error) {
+			error.message = error.response.data.error;
+		}
+		return Promise.reject(error);
+	}
+);
+
 /**
  * Get all cars with pagination
  */

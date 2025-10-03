@@ -9,7 +9,7 @@ export const CarSchema = z.object({
 	price: z.number().positive("Price must be a positive number"),
 	year: z.number().int().min(MIN_YEAR, `Year must be at least ${MIN_YEAR}`).max(MAX_YEAR, `Year cannot exceed ${MAX_YEAR}`),
 	color: z.enum(CAR_COLORS, {
-		errorMap: () => ({ message: `Color must be one of: ${CAR_COLORS.join(", ")}` }),
+		message: `Color must be one of: ${CAR_COLORS.join(", ")}`,
 	}),
 });
 

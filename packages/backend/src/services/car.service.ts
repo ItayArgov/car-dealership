@@ -2,6 +2,7 @@ import type { Car } from "@dealership/common/models";
 import type { CreateCarRequest, UpdateCarRequest, BatchOperationResponse, GetAllCarsResponse } from "@dealership/common/types";
 import type { CarDocument } from "~/types/car.types";
 import { MongoError } from "mongodb";
+import { HTTPException } from "hono/http-exception";
 import db from "~/db";
 import { toCarModel, toCarModels } from "~/types/car.types";
 import { MongoErrorCode } from "~/constants/mongo-errors";
@@ -62,7 +63,7 @@ export async function getCarBySku(sku: string): Promise<Car | null> {
 
 /**
  * Create a new car
- * @throws Error if car with same SKU already exists
+ * @throws HTTPException if car with same SKU already exists
  */
 export async function createCar(car: CreateCarRequest): Promise<Car> {
 	try {
@@ -77,14 +78,14 @@ export async function createCar(car: CreateCarRequest): Promise<Car> {
 		const inserted = await carsCollection.findOne({ _id: result.insertedId });
 
 		if (!inserted) {
-			throw new Error("Failed to retrieve inserted car");
+			throw new HTTPException(500, { message: "Failed to retrieve inserted car" });
 		}
 
 		return toCarModel(inserted);
 	} catch (error) {
 		// MongoDB duplicate key error (unique index violation)
 		if (error instanceof MongoError && error.code === MongoErrorCode.DUPLICATE_KEY) {
-			throw new Error(`Car with SKU "${car.sku}" already exists`);
+			throw new HTTPException(409, { message: `Car with SKU "${car.sku}" already exists` });
 		}
 		throw error;
 	}
@@ -94,9 +95,10 @@ export async function createCar(car: CreateCarRequest): Promise<Car> {
  * Update an existing car by SKU
  * @param sku - The SKU of the car to update (from URL path)
  * @param data - The updated car data (without SKU)
- * @returns Updated car or null if not found
+ * @returns Updated car
+ * @throws HTTPException if car not found
  */
-export async function updateCar(sku: string, data: UpdateCarRequest): Promise<Car | null> {
+export async function updateCar(sku: string, data: UpdateCarRequest): Promise<Car> {
 	const result = await carsCollection.findOneAndUpdate(
 		{ sku, deletedAt: null },
 		{
@@ -106,16 +108,21 @@ export async function updateCar(sku: string, data: UpdateCarRequest): Promise<Ca
 		{ returnDocument: "after" },
 	);
 
-	return result ? toCarModel(result) : null;
+	if (!result) {
+		throw new HTTPException(404, { message: `Car with SKU "${sku}" not found` });
+	}
+
+	return toCarModel(result);
 }
 
 /**
  * Soft delete a car by SKU
  * Sets deletedAt timestamp instead of removing the document
  * @param sku - The SKU of the car to delete
- * @returns The deleted car or null if not found
+ * @returns The deleted car
+ * @throws HTTPException if car not found
  */
-export async function softDeleteCar(sku: string): Promise<Car | null> {
+export async function softDeleteCar(sku: string): Promise<Car> {
 	const result = await carsCollection.findOneAndUpdate(
 		{ sku, deletedAt: null },
 		{
@@ -124,7 +131,11 @@ export async function softDeleteCar(sku: string): Promise<Car | null> {
 		{ returnDocument: "after" },
 	);
 
-	return result ? toCarModel(result) : null;
+	if (!result) {
+		throw new HTTPException(404, { message: `Car with SKU "${sku}" not found` });
+	}
+
+	return toCarModel(result);
 }
 
 /**

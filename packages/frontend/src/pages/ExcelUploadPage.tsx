@@ -22,22 +22,35 @@ export function ExcelUploadPage() {
 	const navigate = useNavigate();
 	const [mode, setMode] = useState<"insert" | "update">("insert");
 	const [result, setResult] = useState<BatchOperationResponse | null>(null);
+	const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
 	const excelInsert = useExcelInsert();
 	const excelUpdate = useExcelUpdate();
 
 	const isUploading = excelInsert.isPending || excelUpdate.isPending;
 
-	const handleDrop = async (files: File[]) => {
+	const handleDrop = (files: File[]) => {
 		if (files.length === 0) return;
+		setSelectedFile(files[0]);
+		setResult(null); // Clear previous results
+	};
 
-		const file = files[0];
+	const handleUpload = async () => {
+		if (!selectedFile) return;
+
 		try {
-			const data = mode === "insert" ? await excelInsert.mutateAsync(file) : await excelUpdate.mutateAsync(file);
+			const data = mode === "insert"
+				? await excelInsert.mutateAsync(selectedFile)
+				: await excelUpdate.mutateAsync(selectedFile);
 			setResult(data);
+			setSelectedFile(null); // Clear file after upload
 		} catch (error) {
 			console.error("Upload failed:", error);
 		}
+	};
+
+	const handleClearFile = () => {
+		setSelectedFile(null);
 	};
 
 	const handleBack = () => {
@@ -90,6 +103,7 @@ export function ExcelUploadPage() {
 							"application/vnd.ms-excel",
 						]}
 						multiple={false}
+						disabled={isUploading}
 					>
 						<Group justify="center" gap="xl" mih={220} style={{ pointerEvents: "none" }}>
 							<Dropzone.Accept>
@@ -112,6 +126,29 @@ export function ExcelUploadPage() {
 							</div>
 						</Group>
 					</Dropzone>
+
+					{selectedFile && !result && (
+						<Paper p="md" withBorder>
+							<Stack gap="sm">
+								<Group justify="space-between">
+									<div>
+										<Text size="sm" fw={500}>
+											Selected file: {selectedFile.name}
+										</Text>
+										<Text size="xs" c="dimmed">
+											Size: {(selectedFile.size / 1024).toFixed(2)} KB
+										</Text>
+									</div>
+									<Button variant="subtle" size="xs" onClick={handleClearFile} disabled={isUploading}>
+										Clear
+									</Button>
+								</Group>
+								<Button onClick={handleUpload} loading={isUploading} fullWidth>
+									Upload and {mode === "insert" ? "Insert" : "Update"}
+								</Button>
+							</Stack>
+						</Paper>
+					)}
 
 					{result && (
 						<>
