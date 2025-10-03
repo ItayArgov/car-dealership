@@ -9,6 +9,44 @@ import { MongoErrorCode } from "~/constants/mongo-errors";
 const carsCollection = db.collection<CarDocument>("cars");
 
 /**
+ * Extract individual write errors from MongoDB bulk write exception or result
+ * Handles both MongoBulkWriteError exceptions and BulkWriteResult with errors
+ */
+function extractBulkWriteErrors(
+	error: unknown,
+	inputCars: CreateCarRequest[]
+): { sku?: string; errors: string[] }[] {
+	const failures: { sku?: string; errors: string[] }[] = [];
+
+	// Check if it's a MongoBulkWriteError with writeErrors
+	if (error && typeof error === 'object' && 'writeErrors' in error) {
+		const bulkError = error as any;
+		const writeErrors = bulkError.writeErrors || [];
+
+		for (const writeError of writeErrors) {
+			const errData = writeError.err || writeError;
+			const index = errData.index;
+			const failedCar = inputCars[index];
+
+			if (failedCar) {
+				// Format error message - make duplicate key errors human-readable
+				let errorMessage = errData.errmsg || "Unknown error";
+				if (errData.code === MongoErrorCode.DUPLICATE_KEY) {
+					errorMessage = "This SKU already exists in the database";
+				}
+
+				failures.push({
+					sku: failedCar.sku,
+					errors: [errorMessage],
+				});
+			}
+		}
+	}
+
+	return failures;
+}
+
+/**
  * Get all cars from the database with pagination
  */
 export async function getAllCars(offset = 0, limit = 50): Promise<GetAllCarsResponse> {
@@ -106,36 +144,34 @@ export async function bulkInsertCars(cars: CreateCarRequest[]): Promise<BatchOpe
 
 	try {
 		const result = await carsCollection.bulkWrite(operations, { ordered: false });
-
 		response.inserted = result.insertedCount;
 
-		// Handle individual write errors (e.g., duplicate SKU)
+		// Handle individual write errors from result (though usually thrown as exception)
 		if (result.hasWriteErrors()) {
-			const errors = result.getWriteErrors();
-			for (const error of errors) {
-				const failedCar = cars[error.index];
-				if (!failedCar) continue;
-
-				// Extract meaningful error message from MongoDB error
-				let errorMessage = error.errmsg || "Unknown error";
-				// Simplify duplicate key error message
-				if (error.code === MongoErrorCode.DUPLICATE_KEY) {
-					errorMessage = `Duplicate SKU "${failedCar.sku}" already exists`;
-				}
-
-				response.failed.push({
-					sku: failedCar.sku,
-					errors: [errorMessage],
-				});
-			}
+			response.failed.push(...extractBulkWriteErrors(result, cars));
 		}
 	} catch (error) {
-		// Catastrophic failure - mark all as failed
-		const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-		response.failed = cars.map((car) => ({
-			sku: car.sku,
-			errors: [errorMessage],
-		}));
+		// MongoBulkWriteError is thrown even with ordered:false when there are errors
+		const bulkError = error as any;
+
+		// Extract successful inserts from result if available
+		if (bulkError.result?.insertedCount) {
+			response.inserted = bulkError.result.insertedCount;
+		}
+
+		// Extract individual write errors
+		const failures = extractBulkWriteErrors(error, cars);
+
+		if (failures.length > 0) {
+			response.failed.push(...failures);
+		} else {
+			// Catastrophic failure - mark all as failed
+			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+			response.failed = cars.map((car) => ({
+				sku: car.sku,
+				errors: [errorMessage],
+			}));
+		}
 	}
 
 	return response;
@@ -169,7 +205,6 @@ export async function bulkUpdateCars(cars: CreateCarRequest[]): Promise<BatchOpe
 
 	try {
 		const result = await carsCollection.bulkWrite(operations, { ordered: false });
-
 		response.updated = result.modifiedCount;
 
 		// Track cars that weren't found (matchedCount = 0 for that operation)
@@ -191,33 +226,32 @@ export async function bulkUpdateCars(cars: CreateCarRequest[]): Promise<BatchOpe
 			}
 		}
 
-		// Handle individual write errors
+		// Handle individual write errors from result (though usually thrown as exception)
 		if (result.hasWriteErrors()) {
-			const errors = result.getWriteErrors();
-			for (const error of errors) {
-				const failedCar = cars[error.index];
-				if (!failedCar) continue;
-
-				// Extract meaningful error message
-				let errorMessage = error.errmsg || "Unknown error";
-				// Simplify error messages if possible
-				if (error.code === MongoErrorCode.DUPLICATE_KEY) {
-					errorMessage = `Duplicate SKU "${failedCar.sku}" already exists`;
-				}
-
-				response.failed.push({
-					sku: failedCar.sku,
-					errors: [errorMessage],
-				});
-			}
+			response.failed.push(...extractBulkWriteErrors(result, cars));
 		}
 	} catch (error) {
-		// Catastrophic failure - mark all as failed
-		const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-		response.failed = cars.map((car) => ({
-			sku: car.sku,
-			errors: [errorMessage],
-		}));
+		// MongoBulkWriteError is thrown even with ordered:false when there are errors
+		const bulkError = error as any;
+
+		// Extract successful updates from result if available
+		if (bulkError.result?.modifiedCount) {
+			response.updated = bulkError.result.modifiedCount;
+		}
+
+		// Extract individual write errors
+		const failures = extractBulkWriteErrors(error, cars);
+
+		if (failures.length > 0) {
+			response.failed.push(...failures);
+		} else {
+			// Catastrophic failure - mark all as failed
+			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
+			response.failed = cars.map((car) => ({
+				sku: car.sku,
+				errors: [errorMessage],
+			}));
+		}
 	}
 
 	return response;
