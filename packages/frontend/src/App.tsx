@@ -1,37 +1,72 @@
+import { useState } from "react";
+import { Container, Title, Group, Button, Box } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
+import { IconPlus, IconFileUpload } from "@tabler/icons-react";
+import { CarsTable } from "./components/CarsTable";
+import { CarModal } from "./components/CarModal";
+import { ExcelUploadModal } from "./components/ExcelUploadModal";
+import { useCars } from "./hooks/useCars";
 import type { Car } from "@dealership/common/models";
-import axios from "axios";
-import { useEffect, useState } from "react";
 
 function App() {
-	const [message, setMessage] = useState<string>();
-	const [isLoading, setIsLoading] = useState(false);
-	const [cars] = useState<Car[]>([]); // Not yet implemented
+	const [carModalOpened, { open: openCarModal, close: closeCarModal }] = useDisclosure(false);
+	const [excelModalOpened, { open: openExcelModal, close: closeExcelModal }] = useDisclosure(false);
+	const [selectedCar, setSelectedCar] = useState<Car | undefined>(undefined);
 
-	useEffect(() => {
-		setIsLoading(true);
-		axios
-			.get<{ message: string }>("/message")
-			.then((res) => {
-				setMessage(res.data.message);
-			})
-			.finally(() => {
-				setIsLoading(false);
-			});
-	}, []);
+	const { data, isLoading } = useCars(0, 100);
 
-	if (isLoading) {
-		return <div>Loading...</div>;
-	}
+	const handleCreateCar = () => {
+		setSelectedCar(undefined);
+		openCarModal();
+	};
+
+	const handleEditCar = (car: Car) => {
+		setSelectedCar(car);
+		openCarModal();
+	};
+
+	const handleCloseCarModal = () => {
+		setSelectedCar(undefined);
+		closeCarModal();
+	};
 
 	return (
-		<div>
-			<h1>{message}</h1>
-			<ul>
-				{cars.map((car) => (
-					<li key={car.sku}>{car.model}</li>
-				))}
-			</ul>
-		</div>
+		<Container size="xl" py="xl">
+			<Box mb="xl">
+				<Group justify="space-between" align="center">
+					<Title order={1}>Car Dealership Management</Title>
+					<Group>
+						<Button leftSection={<IconPlus size={18} />} onClick={handleCreateCar}>
+							Create Car
+						</Button>
+						<Button
+							leftSection={<IconFileUpload size={18} />}
+							onClick={openExcelModal}
+							variant="light"
+						>
+							Upload Excel
+						</Button>
+					</Group>
+				</Group>
+			</Box>
+
+			<CarsTable
+				cars={data?.cars || []}
+				isLoading={isLoading}
+				onEdit={handleEditCar}
+			/>
+
+			<CarModal
+				opened={carModalOpened}
+				onClose={handleCloseCarModal}
+				car={selectedCar}
+			/>
+
+			<ExcelUploadModal
+				opened={excelModalOpened}
+				onClose={closeExcelModal}
+			/>
+		</Container>
 	);
 }
 
