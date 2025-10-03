@@ -1,4 +1,4 @@
-import { Table, ActionIcon, Text, Box, Loader, Center } from "@mantine/core";
+import { Table, Button, Text, Box, Loader, Center } from "@mantine/core";
 import { IconEdit } from "@tabler/icons-react";
 import type { Car } from "@dealership/common/models";
 
@@ -37,7 +37,7 @@ export function CarsTable({ cars, isLoading, onEdit }: CarsTableProps) {
 					<Table.Th>Price</Table.Th>
 					<Table.Th>Year</Table.Th>
 					<Table.Th>Color</Table.Th>
-					<Table.Th w={80}>Actions</Table.Th>
+					<Table.Th w={100}>Actions</Table.Th>
 				</Table.Tr>
 			</Table.Thead>
 			<Table.Tbody>
@@ -71,14 +71,15 @@ export function CarsTable({ cars, isLoading, onEdit }: CarsTableProps) {
 							</Box>
 						</Table.Td>
 						<Table.Td>
-							<ActionIcon
+							<Button
 								variant="light"
 								color="blue"
+								size="xs"
+								leftSection={<IconEdit size={16} />}
 								onClick={() => onEdit(car)}
-								aria-label={`Edit ${car.sku}`}
 							>
-								<IconEdit size={18} />
-							</ActionIcon>
+								Edit
+							</Button>
 						</Table.Td>
 					</Table.Tr>
 				))}
