@@ -3,6 +3,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import db from "~/db";
+import carsRoutes from "~/routes/cars.routes";
 
 const app = new Hono().basePath("/api");
 
@@ -12,6 +13,8 @@ app.get("/message", async (c) => {
 	const carCount = await db.collection<Car>("cars").countDocuments();
 	return c.json({ message: `Welcome to the Car Dealership! We have ${carCount} car${carCount === 1 ? "" : "s"} in catalog` });
 });
+
+app.route("/cars", carsRoutes);
 
 async function initializeDb() {
 	await db.collection<Car>("cars").createIndex({ sku: 1 }, { unique: true });

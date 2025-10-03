@@ -6,4 +6,6 @@ export interface Car {
 	price: number;
 	year: number;
 	color: "red" | "blue" | "green" | "yellow" | "silver" | "black" | "white";
+	createdAt: Date;
+	updatedAt: Date;
 }

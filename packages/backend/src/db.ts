@@ -1,6 +1,9 @@
 import { MongoClient } from "mongodb";
 
-const client = new MongoClient("mongodb://localhost:27017");
+// Use environment variable for connection string (for testing), fallback to localhost
+const connectionString = process.env.MONGO_URL || "mongodb://localhost:27017";
+
+const client = new MongoClient(connectionString);
 
 const db = client.db("dealership");
 

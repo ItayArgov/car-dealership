@@ -1,1 +1,162 @@
-export {};
+import { Hono } from "hono";
+import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
+import * as carService from "~/services/car.service";
+import * as excelService from "~/services/excel.service";
+import { validateCreateCar, validateUpdateCar, validateExcelFile } from "~/middleware/validation.middleware";
+
+const cars = new Hono();
+
+/**
+ * GET /api/cars - Get all cars with pagination
+ */
+cars.get("/", async (c) => {
+	try {
+		// Parse query params with defaults
+		const offset = Math.max(0, Number.parseInt(c.req.query("offset") || "0"));
+		const limit = Math.min(100, Math.max(1, Number.parseInt(c.req.query("limit") || "50")));
+
+		const result = await carService.getAllCars(offset, limit);
+
+		return c.json({
+			cars: result.cars,
+			total: result.total,
+			offset,
+			limit,
+		});
+	} catch (error) {
+		console.error("Error fetching cars:", error);
+		return c.json({ error: "Failed to fetch cars" }, 500);
+	}
+});
+
+/**
+ * GET /api/cars/:sku - Get single car by SKU
+ */
+cars.get("/:sku", async (c) => {
+	try {
+		const sku = c.req.param("sku");
+		const car = await carService.getCarBySku(sku);
+
+		if (!car) {
+			return c.json({ error: `Car with SKU "${sku}" not found` }, 404);
+		}
+
+		return c.json(car);
+	} catch (error) {
+		console.error("Error fetching car:", error);
+		return c.json({ error: "Failed to fetch car" }, 500);
+	}
+});
+
+/**
+ * POST /api/cars - Create a new car
+ */
+cars.post("/", validateCreateCar, async (c) => {
+	try {
+		const carData = c.req.valid("json") as CreateCarRequest;
+		const car = await carService.createCar(carData);
+
+		return c.json(car, 201);
+	} catch (error) {
+		// Check for duplicate SKU error
+		if (error instanceof Error && error.message.includes("already exists")) {
+			return c.json({ error: error.message }, 409);
+		}
+
+		console.error("Error creating car:", error);
+		return c.json({ error: "Failed to create car" }, 500);
+	}
+});
+
+/**
+ * PUT /api/cars/:sku - Update an existing car
+ */
+cars.put("/:sku", validateUpdateCar, async (c) => {
+	try {
+		const sku = c.req.param("sku");
+		const updateData = c.req.valid("json") as UpdateCarRequest;
+
+		const car = await carService.updateCar(sku, updateData);
+
+		if (!car) {
+			return c.json({ error: `Car with SKU "${sku}" not found` }, 404);
+		}
+
+		return c.json(car);
+	} catch (error) {
+		console.error("Error updating car:", error);
+		return c.json({ error: "Failed to update car" }, 500);
+	}
+});
+
+/**
+ * POST /api/cars/excel/insert - Bulk insert cars from Excel file
+ */
+cars.post("/excel/insert", validateExcelFile, async (c) => {
+	try {
+		const { file } = c.req.valid("form");
+
+		// Convert File to Buffer
+		const arrayBuffer = await file.arrayBuffer();
+		const buffer = Buffer.from(arrayBuffer);
+
+		// Parse Excel file
+		const { data } = excelService.parseExcelFile(buffer);
+
+		// Validate and parse car data
+		const { validCars, errors: parseErrors } = excelService.validateAndParseCarData(data);
+
+		// Insert valid cars
+		const result = await carService.bulkInsertCars(validCars);
+
+		// Combine parse errors with insert errors
+		const allErrors = [...parseErrors, ...result.failed];
+
+		return c.json({
+			inserted: result.inserted,
+			updated: 0,
+			failed: allErrors,
+		});
+	} catch (error) {
+		console.error("Error processing Excel upload:", error);
+		const message = error instanceof Error ? error.message : "Failed to process Excel file";
+		return c.json({ error: message }, 400);
+	}
+});
+
+/**
+ * POST /api/cars/excel/update - Bulk update cars from Excel file
+ */
+cars.post("/excel/update", validateExcelFile, async (c) => {
+	try {
+		const { file } = c.req.valid("form");
+
+		// Convert File to Buffer
+		const arrayBuffer = await file.arrayBuffer();
+		const buffer = Buffer.from(arrayBuffer);
+
+		// Parse Excel file
+		const { data } = excelService.parseExcelFile(buffer);
+
+		// Validate and parse car data
+		const { validCars, errors: parseErrors } = excelService.validateAndParseCarData(data);
+
+		// Update valid cars
+		const result = await carService.bulkUpdateCars(validCars);
+
+		// Combine parse errors with update errors
+		const allErrors = [...parseErrors, ...result.failed];
+
+		return c.json({
+			inserted: 0,
+			updated: result.updated,
+			failed: allErrors,
+		});
+	} catch (error) {
+		console.error("Error processing Excel upload:", error);
+		const message = error instanceof Error ? error.message : "Failed to process Excel file";
+		return c.json({ error: message }, 400);
+	}
+});
+
+export default cars;
