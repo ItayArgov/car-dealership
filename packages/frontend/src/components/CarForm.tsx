@@ -1,158 +1,96 @@
-import { useForm, Controller } from "react-hook-form";
+import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TextInput, NumberInput, Select, Button, Stack, Group } from "@mantine/core";
+import { TextInput, Button, Stack, Group } from "@mantine/core";
 import { CreateCarSchema, UpdateCarDataSchema } from "@dealership/common/schemas";
-import { CAR_COLORS } from "@dealership/common/constants";
 import type { Car } from "@dealership/common/models";
 import type { CreateCarRequest, UpdateCarRequest } from "@dealership/common/types";
+import { CarCommonFields, SkuCreateField } from "./CarFields";
 
-interface CarFormProps {
-	car?: Car;
-	onSubmit: (data: CreateCarRequest | UpdateCarRequest) => void | Promise<void>;
+interface BaseCarFormProps {
 	onCancel?: () => void;
 	isSubmitting?: boolean;
 	readOnly?: boolean;
 }
 
-export function CarForm({ car, onSubmit, onCancel, isSubmitting, readOnly = false }: CarFormProps) {
-	const isEdit = !!car;
-	const schema = isEdit ? UpdateCarDataSchema : CreateCarSchema;
+type CarFormProps =
+    | (BaseCarFormProps & {
+            car?: undefined;
+            onSubmit: (data: CreateCarRequest) => void | Promise<void>;
+      })
+    | (BaseCarFormProps & {
+            car: Car;
+            onSubmit: (data: UpdateCarRequest) => void | Promise<void>;
+      });
 
-	const {
-		register,
-		control,
-		handleSubmit,
-		formState: { errors },
-	} = useForm({
-		resolver: zodResolver(schema),
-		defaultValues: car || {},
-	});
+export function CreateCarForm({ onSubmit, onCancel, isSubmitting = false, readOnly = false }: Omit<Extract<CarFormProps, { car?: undefined }>, "car">) {
+    const methods = useForm<CreateCarRequest>({
+        resolver: zodResolver(CreateCarSchema),
+        defaultValues: {},
+    });
+    return (
+        <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onSubmit)}>
+                <Stack>
+                    <SkuCreateField readOnly={readOnly} />
+                    <CarCommonFields readOnly={readOnly} />
+                    {!readOnly && (
+                        <Group justify="flex-end" mt="xl">
+                            {onCancel && (
+                                <Button variant="default" onClick={onCancel} disabled={isSubmitting}>
+                                    Cancel
+                                </Button>
+                            )}
+                            <Button type="submit" loading={isSubmitting}>
+                                Create Car
+                            </Button>
+                        </Group>
+                    )}
+                </Stack>
+            </form>
+        </FormProvider>
+    );
+}
 
-	return (
-		<form onSubmit={handleSubmit(onSubmit)}>
-			<Stack>
-				{isEdit && (
-					<TextInput
-						label="SKU"
-						value={car.sku}
-						readOnly
-						variant={readOnly ? "filled" : "default"}
-						styles={{ input: { cursor: readOnly ? "default" : "not-allowed" } }}
-					/>
-				)}
+export function EditCarForm({ car, onSubmit, onCancel, isSubmitting = false, readOnly = false }: Extract<CarFormProps, { car: Car }>) {
+    const { sku, ...defaults } = car;
 
-				{!isEdit && (
-					<TextInput
-						label="SKU"
-						placeholder="Enter unique SKU"
-						{...register("sku")}
-						error={errors.sku?.message}
-						required
-						withAsterisk
-						readOnly={readOnly}
-						variant={readOnly ? "filled" : "default"}
-					/>
-				)}
+    const methods = useForm<UpdateCarRequest>({
+        resolver: zodResolver(UpdateCarDataSchema),
+        defaultValues: defaults,
+    });
+    return (
+        <FormProvider {...methods}>
+            <form onSubmit={methods.handleSubmit(onSubmit)}>
+                <Stack>
+                    <TextInput
+                        label="SKU"
+                        value={sku}
+                        readOnly
+                        variant={readOnly ? "filled" : "default"}
+                        styles={{ input: { cursor: readOnly ? "default" : "not-allowed" } }}
+                    />
+                    <CarCommonFields readOnly={readOnly} />
+                    {!readOnly && (
+                        <Group justify="flex-end" mt="xl">
+                            {onCancel && (
+                                <Button variant="default" onClick={onCancel} disabled={isSubmitting}>
+                                    Cancel
+                                </Button>
+                            )}
+                            <Button type="submit" loading={isSubmitting}>
+                                Save Changes
+                            </Button>
+                        </Group>
+                    )}
+                </Stack>
+            </form>
+        </FormProvider>
+    );
+}
 
-				<TextInput
-					label="Model"
-					placeholder="Enter car model"
-					{...register("model")}
-					error={errors.model?.message}
-					required={!readOnly}
-					withAsterisk={!readOnly}
-					readOnly={readOnly}
-					variant={readOnly ? "filled" : "default"}
-				/>
-
-				<TextInput
-					label="Make"
-					placeholder="Enter car make"
-					{...register("make")}
-					error={errors.make?.message}
-					required={!readOnly}
-					withAsterisk={!readOnly}
-					readOnly={readOnly}
-					variant={readOnly ? "filled" : "default"}
-				/>
-
-				<Controller
-					name="price"
-					control={control}
-					render={({ field }) => (
-						<NumberInput
-							label="Price"
-							placeholder="Enter price"
-							{...field}
-							onChange={(value) => field.onChange(value)}
-							error={errors.price?.message}
-							prefix="$"
-							thousandSeparator=","
-							min={0}
-							hideControls
-							required={!readOnly}
-							withAsterisk={!readOnly}
-							readOnly={readOnly}
-							variant={readOnly ? "filled" : "default"}
-						/>
-					)}
-				/>
-
-				<Controller
-					name="year"
-					control={control}
-					render={({ field }) => (
-						<NumberInput
-							label="Year"
-							placeholder="Enter year"
-							{...field}
-							onChange={(value) => field.onChange(value)}
-							error={errors.year?.message}
-							min={1900}
-							max={2100}
-							hideControls
-							required={!readOnly}
-							withAsterisk={!readOnly}
-							readOnly={readOnly}
-							variant={readOnly ? "filled" : "default"}
-						/>
-					)}
-				/>
-
-				<Controller
-					name="color"
-					control={control}
-					render={({ field }) => (
-						<Select
-							label="Color"
-							placeholder="Select color"
-							{...field}
-							error={errors.color?.message}
-							data={CAR_COLORS.map((color) => ({
-								value: color,
-								label: color.charAt(0).toUpperCase() + color.slice(1),
-							}))}
-							required={!readOnly}
-							withAsterisk={!readOnly}
-							readOnly={readOnly}
-							variant={readOnly ? "filled" : "default"}
-						/>
-					)}
-				/>
-
-				{!readOnly && (
-					<Group justify="flex-end" mt="xl">
-						{onCancel && (
-							<Button variant="default" onClick={onCancel} disabled={isSubmitting}>
-								Cancel
-							</Button>
-						)}
-						<Button type="submit" loading={isSubmitting}>
-							{isEdit ? "Save Changes" : "Create Car"}
-						</Button>
-					</Group>
-				)}
-			</Stack>
-		</form>
-	);
+export function CarForm(props: CarFormProps): React.ReactElement {
+    if ("car" in props && props.car) {
+        return <EditCarForm {...props} car={props.car} />;
+    }
+    return <CreateCarForm {...props} />;
 }

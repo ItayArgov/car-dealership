@@ -11,7 +11,6 @@ const cars = new Hono();
  */
 cars.get("/", async (c) => {
 	try {
-		// Parse query params with defaults
 		const offset = Math.max(0, Number.parseInt(c.req.query("offset") || "0"));
 		const limit = Math.min(100, Math.max(1, Number.parseInt(c.req.query("limit") || "50")));
 
@@ -80,70 +79,46 @@ cars.delete("/:sku", async (c) => {
  * POST /api/cars/excel/insert - Bulk insert cars from Excel file
  */
 cars.post("/excel/insert", validateExcelFile, async (c) => {
-	try {
-		const { file } = c.req.valid("form");
+	const { file } = c.req.valid("form");
 
-		// Convert File to Buffer
-		const arrayBuffer = await file.arrayBuffer();
-		const buffer = Buffer.from(arrayBuffer);
+	const arrayBuffer = await file.arrayBuffer();
+	const buffer = Buffer.from(arrayBuffer);
 
-		// Parse Excel file
-		const { data } = excelService.parseExcelFile(buffer);
+	const { data } = excelService.parseExcelFile(buffer);
+	const { validCars, errors: parseErrors } = excelService.validateAndParseCarData(data);
 
-		// Validate and parse car data
-		const { validCars, errors: parseErrors } = excelService.validateAndParseCarData(data);
+	const result = await carService.bulkInsertCars(validCars);
 
-		// Insert valid cars
-		const result = await carService.bulkInsertCars(validCars);
+	const allErrors = [...parseErrors, ...result.failed];
 
-		// Combine parse errors with insert errors
-		const allErrors = [...parseErrors, ...result.failed];
-
-		return c.json({
-			inserted: result.inserted,
-			updated: 0,
-			failed: allErrors,
-		});
-	} catch (error) {
-		console.error("Error processing Excel upload:", error);
-		const message = error instanceof Error ? error.message : "Failed to process Excel file";
-		return c.json({ error: message }, 400);
-	}
+	return c.json({
+		inserted: result.inserted,
+		updated: 0,
+		failed: allErrors,
+	});
 });
 
 /**
  * POST /api/cars/excel/update - Bulk update cars from Excel file
  */
 cars.post("/excel/update", validateExcelFile, async (c) => {
-	try {
-		const { file } = c.req.valid("form");
+	const { file } = c.req.valid("form");
 
-		// Convert File to Buffer
-		const arrayBuffer = await file.arrayBuffer();
-		const buffer = Buffer.from(arrayBuffer);
+	const arrayBuffer = await file.arrayBuffer();
+	const buffer = Buffer.from(arrayBuffer);
 
-		// Parse Excel file
-		const { data } = excelService.parseExcelFile(buffer);
+	const { data } = excelService.parseExcelFile(buffer);
+	const { validCars, errors: parseErrors } = excelService.validateAndParseCarData(data);
 
-		// Validate and parse car data
-		const { validCars, errors: parseErrors } = excelService.validateAndParseCarData(data);
+	const result = await carService.bulkUpdateCars(validCars);
 
-		// Update valid cars
-		const result = await carService.bulkUpdateCars(validCars);
+	const allErrors = [...parseErrors, ...result.failed];
 
-		// Combine parse errors with update errors
-		const allErrors = [...parseErrors, ...result.failed];
-
-		return c.json({
-			inserted: 0,
-			updated: result.updated,
-			failed: allErrors,
-		});
-	} catch (error) {
-		console.error("Error processing Excel upload:", error);
-		const message = error instanceof Error ? error.message : "Failed to process Excel file";
-		return c.json({ error: message }, 400);
-	}
+	return c.json({
+		inserted: 0,
+		updated: result.updated,
+		failed: allErrors,
+	});
 });
 
 export default cars;

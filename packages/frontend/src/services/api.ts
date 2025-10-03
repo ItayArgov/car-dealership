@@ -1,11 +1,6 @@
 import axios from "axios";
 import type { Car } from "@dealership/common/models";
-import type {
-	CreateCarRequest,
-	UpdateCarRequest,
-	GetAllCarsResponse,
-	BatchOperationResponse,
-} from "@dealership/common/types";
+import type { CreateCarRequest, UpdateCarRequest, GetAllCarsResponse, BatchOperationResponse } from "@dealership/common/types";
 
 const api = axios.create({
 	baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api",
@@ -26,11 +21,11 @@ api.interceptors.response.use(
 /**
  * Get all cars with pagination
  */
-export async function getCars(offset = 0, limit = 50): Promise<GetAllCarsResponse & { offset: number; limit: number }> {
-	const response = await api.get<GetAllCarsResponse & { offset: number; limit: number }>("/cars", {
-		params: { offset, limit },
-	});
-	return response.data;
+export async function getCars(offset = 0, limit = 50): Promise<GetAllCarsResponse> {
+    const response = await api.get<GetAllCarsResponse>("/cars", {
+        params: { offset, limit },
+    });
+    return response.data;
 }
 
 /**

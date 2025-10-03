@@ -6,5 +6,5 @@ beforeEach(async () => {
 	await db.collection("cars").deleteMany({});
 });
 
-// Create unique index once when db is first accessed
+// Create unique index on module import for test isolation (Note: Production uses partial index for soft deletes)
 await db.collection("cars").createIndex({ sku: 1 }, { unique: true });

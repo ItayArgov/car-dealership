@@ -23,8 +23,10 @@ export interface BatchOperationResponse {
 }
 
 export interface GetAllCarsResponse {
-	cars: Car[];
-	total: number;
+    cars: Car[];
+    total: number;
+    offset: number;
+    limit: number;
 }
 
 // Excel parsing types

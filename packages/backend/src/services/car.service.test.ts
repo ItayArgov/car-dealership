@@ -101,7 +101,7 @@ describe("Car Service", () => {
 	});
 
 	describe("updateCar", () => {
-		it("should throw HTTPException when car does not exist", async () => {
+		it("should throw NotFoundError when car does not exist", async () => {
 			const updateData: UpdateCarRequest = {
 				make: "Toyota",
 				model: "Camry",
@@ -146,7 +146,7 @@ describe("Car Service", () => {
 	});
 
 	describe("softDeleteCar", () => {
-		it("should throw HTTPException when car does not exist", async () => {
+		it("should throw NotFoundError when car does not exist", async () => {
 			await expect(softDeleteCar("NONEXISTENT")).rejects.toThrow('Car with SKU "NONEXISTENT" not found');
 		});
 

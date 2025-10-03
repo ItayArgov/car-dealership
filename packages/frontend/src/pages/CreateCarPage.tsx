@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Container, Paper, Title, Button } from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { CarForm } from "../components/CarForm";
+import { CreateCarForm } from "../components/CarForm";
 import { useCreateCar } from "../hooks/useCarMutations";
 import type { CreateCarRequest } from "@dealership/common/types";
 
@@ -34,7 +34,7 @@ export function CreateCarPage() {
 					Create New Car
 				</Title>
 
-				<CarForm onSubmit={handleSubmit} onCancel={handleCancel} isSubmitting={createCar.isPending} />
+				<CreateCarForm onSubmit={handleSubmit} onCancel={handleCancel} isSubmitting={createCar.isPending} />
 			</Paper>
 		</Container>
 	);

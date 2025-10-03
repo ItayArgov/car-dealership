@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Container, Paper, Title, Button, Loader, Center, Text, Alert, Group, Switch } from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { CarForm } from "../components/CarForm";
+import { EditCarForm } from "../components/CarForm";
 import { useCar } from "../hooks/useCars";
 import { useUpdateCar } from "../hooks/useCarMutations";
 import type { UpdateCarRequest } from "@dealership/common/types";
@@ -80,7 +80,7 @@ export function CarDetailPage() {
 					{isEditMode ? "Edit Car" : "Car Details"} - {car.make} {car.model}
 				</Title>
 
-				<CarForm
+				<EditCarForm
 					car={car}
 					onSubmit={handleSubmit}
 					onCancel={() => setIsEditMode(false)}
