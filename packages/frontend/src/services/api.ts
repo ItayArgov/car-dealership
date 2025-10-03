@@ -46,6 +46,13 @@ export async function updateCar(sku: string, data: UpdateCarRequest): Promise<Ca
 }
 
 /**
+ * Delete a car (soft delete)
+ */
+export async function deleteCar(sku: string): Promise<void> {
+	await api.delete(`/cars/${sku}`);
+}
+
+/**
  * Upload Excel file for bulk insert
  */
 export async function uploadExcelInsert(file: File): Promise<BatchOperationResponse> {

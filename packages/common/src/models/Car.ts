@@ -8,4 +8,5 @@ export interface Car {
 	color: "red" | "blue" | "green" | "yellow" | "silver" | "black" | "white";
 	createdAt: Date;
 	updatedAt: Date;
+	deletedAt?: Date | null;
 }

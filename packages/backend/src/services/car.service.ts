@@ -12,14 +12,11 @@ const carsCollection = db.collection<CarDocument>("cars");
  * Extract individual write errors from MongoDB bulk write exception or result
  * Handles both MongoBulkWriteError exceptions and BulkWriteResult with errors
  */
-function extractBulkWriteErrors(
-	error: unknown,
-	inputCars: CreateCarRequest[]
-): { sku?: string; errors: string[] }[] {
+function extractBulkWriteErrors(error: unknown, inputCars: CreateCarRequest[]): { sku?: string; errors: string[] }[] {
 	const failures: { sku?: string; errors: string[] }[] = [];
 
 	// Check if it's a MongoBulkWriteError with writeErrors
-	if (error && typeof error === 'object' && 'writeErrors' in error) {
+	if (error && typeof error === "object" && "writeErrors" in error) {
 		const bulkError = error as any;
 		const writeErrors = bulkError.writeErrors || [];
 
@@ -29,7 +26,6 @@ function extractBulkWriteErrors(
 			const failedCar = inputCars[index];
 
 			if (failedCar) {
-				// Format error message - make duplicate key errors human-readable
 				let errorMessage = errData.errmsg || "Unknown error";
 				if (errData.code === MongoErrorCode.DUPLICATE_KEY) {
 					errorMessage = "This SKU already exists in the database";
@@ -50,18 +46,17 @@ function extractBulkWriteErrors(
  * Get all cars from the database with pagination
  */
 export async function getAllCars(offset = 0, limit = 50): Promise<GetAllCarsResponse> {
-	const [docs, total] = await Promise.all([
-		carsCollection.find({}).skip(offset).limit(limit).toArray(),
-		carsCollection.countDocuments(),
-	]);
+	const filter = { deletedAt: null };
+	const [docs, total] = await Promise.all([carsCollection.find(filter).skip(offset).limit(limit).toArray(), carsCollection.countDocuments(filter)]);
 	return { cars: toCarModels(docs), total };
 }
 
 /**
  * Get a single car by SKU
+ * Only returns non-deleted cars
  */
 export async function getCarBySku(sku: string): Promise<Car | null> {
-	const doc = await carsCollection.findOne({ sku });
+	const doc = await carsCollection.findOne({ sku, deletedAt: null });
 	return doc ? toCarModel(doc) : null;
 }
 
@@ -103,10 +98,28 @@ export async function createCar(car: CreateCarRequest): Promise<Car> {
  */
 export async function updateCar(sku: string, data: UpdateCarRequest): Promise<Car | null> {
 	const result = await carsCollection.findOneAndUpdate(
-		{ sku },
+		{ sku, deletedAt: null },
 		{
 			$set: data,
 			$currentDate: { updatedAt: true as const },
+		},
+		{ returnDocument: "after" },
+	);
+
+	return result ? toCarModel(result) : null;
+}
+
+/**
+ * Soft delete a car by SKU
+ * Sets deletedAt timestamp instead of removing the document
+ * @param sku - The SKU of the car to delete
+ * @returns The deleted car or null if not found
+ */
+export async function softDeleteCar(sku: string): Promise<Car | null> {
+	const result = await carsCollection.findOneAndUpdate(
+		{ sku, deletedAt: null },
+		{
+			$currentDate: { deletedAt: true as const },
 		},
 		{ returnDocument: "after" },
 	);
@@ -165,7 +178,6 @@ export async function bulkInsertCars(cars: CreateCarRequest[]): Promise<BatchOpe
 		if (failures.length > 0) {
 			response.failed.push(...failures);
 		} else {
-			// Catastrophic failure - mark all as failed
 			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
 			response.failed = cars.map((car) => ({
 				sku: car.sku,
@@ -245,7 +257,6 @@ export async function bulkUpdateCars(cars: CreateCarRequest[]): Promise<BatchOpe
 		if (failures.length > 0) {
 			response.failed.push(...failures);
 		} else {
-			// Catastrophic failure - mark all as failed
 			const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
 			response.failed = cars.map((car) => ({
 				sku: car.sku,

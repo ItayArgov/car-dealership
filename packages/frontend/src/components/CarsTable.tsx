@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { Table, Button, Text, Box, Loader, Center, ScrollArea } from "@mantine/core";
-import { IconEdit } from "@tabler/icons-react";
+import { Table, Button, Text, Box, Loader, Center, ScrollArea, Group } from "@mantine/core";
+import { IconEye, IconTrash } from "@tabler/icons-react";
+import { modals } from "@mantine/modals";
+import { useDeleteCar } from "../hooks/useCarMutations";
 import type { Car } from "@dealership/common/models";
 
 interface CarsTableProps {
@@ -10,6 +12,23 @@ interface CarsTableProps {
 
 export function CarsTable({ cars, isLoading }: CarsTableProps) {
 	const navigate = useNavigate();
+	const deleteCar = useDeleteCar();
+
+	const handleDelete = (car: Car) => {
+		modals.openConfirmModal({
+			title: "Delete Car",
+			children: (
+				<Text size="sm">
+					Are you sure you want to delete <strong>{car.make} {car.model}</strong> (SKU: {car.sku})?
+					This action cannot be undone.
+				</Text>
+			),
+			labels: { confirm: "Delete", cancel: "Cancel" },
+			confirmProps: { color: "red" },
+			onConfirm: () => deleteCar.mutate(car.sku),
+		});
+	};
+
 	if (isLoading) {
 		return (
 			<Center h={200}>
@@ -39,7 +58,7 @@ export function CarsTable({ cars, isLoading }: CarsTableProps) {
 					<Table.Th>Price</Table.Th>
 					<Table.Th>Year</Table.Th>
 					<Table.Th>Color</Table.Th>
-					<Table.Th w={100}>Actions</Table.Th>
+					<Table.Th w={150}>Actions</Table.Th>
 				</Table.Tr>
 			</Table.Thead>
 			<Table.Tbody>
@@ -73,15 +92,26 @@ export function CarsTable({ cars, isLoading }: CarsTableProps) {
 							</Box>
 						</Table.Td>
 						<Table.Td>
-							<Button
-								variant="light"
-								color="blue"
-								size="xs"
-								leftSection={<IconEdit size={16} />}
-								onClick={() => navigate(`/cars/${car.sku}/edit`)}
-							>
-								Edit
-							</Button>
+							<Group gap="xs">
+								<Button
+									variant="light"
+									color="blue"
+									size="xs"
+									leftSection={<IconEye size={16} />}
+									onClick={() => navigate(`/cars/${car.sku}`)}
+								>
+									View
+								</Button>
+								<Button
+									variant="light"
+									color="red"
+									size="xs"
+									leftSection={<IconTrash size={16} />}
+									onClick={() => handleDelete(car)}
+								>
+									Delete
+								</Button>
+							</Group>
 						</Table.Td>
 					</Table.Tr>
 				))}

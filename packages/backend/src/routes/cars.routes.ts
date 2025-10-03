@@ -90,6 +90,25 @@ cars.put("/:sku", validateUpdateCar, async (c) => {
 });
 
 /**
+ * DELETE /api/cars/:sku - Soft delete a car
+ */
+cars.delete("/:sku", async (c) => {
+	try {
+		const sku = c.req.param("sku");
+		const car = await carService.softDeleteCar(sku);
+
+		if (!car) {
+			return c.json({ error: `Car with SKU "${sku}" not found` }, 404);
+		}
+
+		return c.json({ message: "Car deleted successfully", car });
+	} catch (error) {
+		console.error("Error deleting car:", error);
+		return c.json({ error: "Failed to delete car" }, 500);
+	}
+});
+
+/**
  * POST /api/cars/excel/insert - Bulk insert cars from Excel file
  */
 cars.post("/excel/insert", validateExcelFile, async (c) => {

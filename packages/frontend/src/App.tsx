@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { CarListPage } from "./pages/CarListPage";
 import { CreateCarPage } from "./pages/CreateCarPage";
-import { EditCarPage } from "./pages/EditCarPage";
+import { CarDetailPage } from "./pages/CarDetailPage";
 import { ExcelUploadPage } from "./pages/ExcelUploadPage";
 
 function App() {
@@ -9,7 +9,7 @@ function App() {
 		<Routes>
 			<Route path="/" element={<CarListPage />} />
 			<Route path="/cars/new" element={<CreateCarPage />} />
-			<Route path="/cars/:sku/edit" element={<EditCarPage />} />
+			<Route path="/cars/:sku" element={<CarDetailPage />} />
 			<Route path="/excel/upload" element={<ExcelUploadPage />} />
 		</Routes>
 	);
