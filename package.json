@@ -9,7 +9,10 @@
     "backend": "pnpm --filter backend",
     "frontend": "pnpm --filter frontend",
     "format": "prettier --write \"packages/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"packages/**/*.{ts,tsx,js,jsx,json,css,md}\""
+    "format:check": "prettier --check \"packages/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "dev": "./scripts/start-split.sh",
+    "start:tmux": "./scripts/start-tmux.sh",
+    "stop": "./scripts/stop-dev.sh"
   },
   "keywords": [],
   "author": "",

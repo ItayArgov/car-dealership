@@ -125,4 +125,26 @@ cars.post("/excel/update", validateExcelFile, async (c) => {
 	});
 });
 
+/**
+ * POST /api/cars/excel/preview - Preview Excel update changes before applying
+ */
+cars.post("/excel/preview", validateExcelFile, async (c) => {
+	const { file } = c.req.valid("form");
+
+	const arrayBuffer = await file.arrayBuffer();
+	const buffer = Buffer.from(arrayBuffer);
+
+	const { data } = excelService.parseExcelFile(buffer);
+	const { validCars, errors: parseErrors } = excelService.validateAndParseCarData(data);
+
+	const result = await carService.generateUpdatePreviews(validCars);
+
+	const allErrors = [...parseErrors, ...result.failed];
+
+	return c.json({
+		previews: result.previews,
+		failed: allErrors,
+	});
+});
+
 export default cars;

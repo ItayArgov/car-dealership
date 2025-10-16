@@ -5,6 +5,7 @@ import type {
 	UpdateCarRequest,
 	GetAllCarsResponse,
 	BatchOperationResponse,
+	ExcelPreviewResponse,
 } from "@dealership/common/types";
 
 const api = axios.create({
@@ -87,6 +88,21 @@ export async function uploadExcelUpdate(file: File): Promise<BatchOperationRespo
 	formData.append("file", file);
 
 	const response = await api.post<BatchOperationResponse>("/cars/excel/update", formData, {
+		headers: {
+			"Content-Type": "multipart/form-data",
+		},
+	});
+	return response.data;
+}
+
+/**
+ * Preview Excel file changes before update
+ */
+export async function previewExcelUpdate(file: File): Promise<ExcelPreviewResponse> {
+	const formData = new FormData();
+	formData.append("file", file);
+
+	const response = await api.post<ExcelPreviewResponse>("/cars/excel/preview", formData, {
 		headers: {
 			"Content-Type": "multipart/form-data",
 		},

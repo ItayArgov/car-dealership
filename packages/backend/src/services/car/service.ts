@@ -4,7 +4,10 @@ import type {
 	UpdateCarRequest,
 	BatchOperationResponse,
 	GetAllCarsResponse,
+	ExcelPreviewResponse,
+	CarUpdatePreview,
 } from "@dealership/common/types";
+import { calculateCarDiff } from "@dealership/common";
 import type { CarDocument } from "~/types/car.types";
 import { MongoError, MongoBulkWriteError } from "mongodb";
 import db from "~/db";
@@ -78,6 +81,15 @@ export async function getAllActiveCars(offset = 0, limit = 50): Promise<GetAllCa
 export async function getCarBySku(sku: string): Promise<Car | null> {
 	const doc = await carsCollection.findOne({ sku, deletedAt: null });
 	return doc ? toCarModel(doc) : null;
+}
+
+/**
+ * Get multiple cars by their SKUs
+ * Only returns non-deleted cars
+ */
+export async function getCarsBySkus(skus: string[]): Promise<Car[]> {
+	const docs = await carsCollection.find({ sku: { $in: skus }, deletedAt: null }).toArray();
+	return toCarModels(docs);
 }
 
 /**
@@ -248,4 +260,54 @@ export async function bulkUpdateCars(cars: CreateCarRequest[]): Promise<BatchOpe
 	}
 
 	return response;
+}
+
+/**
+ * Generate update previews for Excel update operation
+ * Compares new car data against existing database records
+ * Returns preview with changes and errors for invalid/missing cars
+ */
+export async function generateUpdatePreviews(
+	cars: CreateCarRequest[],
+): Promise<ExcelPreviewResponse> {
+	const previews: CarUpdatePreview[] = [];
+	const failed: Array<{ sku?: string; errors: string[] }> = [];
+
+	if (cars.length === 0) {
+		return { previews, failed };
+	}
+
+	// Fetch existing cars from database
+	const skus = cars.map((car) => car.sku);
+	const existingCars = await getCarsBySkus(skus);
+	const existingCarsMap = new Map(existingCars.map((car) => [car.sku, car]));
+
+	// Generate previews for each car
+	for (const newCarData of cars) {
+		const existingCar = existingCarsMap.get(newCarData.sku);
+
+		if (!existingCar) {
+			// Car doesn't exist - add to failed
+			failed.push({
+				sku: newCarData.sku,
+				errors: [`Car with SKU "${newCarData.sku}" not found`],
+			});
+			continue;
+		}
+
+		// Calculate diff between old and new data
+		const changes = calculateCarDiff(existingCar, newCarData);
+
+		// Only add to previews if there are actual changes
+		if (changes.length > 0) {
+			previews.push({
+				sku: newCarData.sku,
+				make: existingCar.make,
+				model: existingCar.model,
+				changes,
+			});
+		}
+	}
+
+	return { previews, failed };
 }

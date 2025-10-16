@@ -9,3 +9,6 @@ export * from "./types";
 
 // Constants
 export * from "./constants/car.constants";
+
+// Utils
+export * from "./utils/diff";
