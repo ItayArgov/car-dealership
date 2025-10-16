@@ -6,6 +6,7 @@ import type {
 	GetAllCarsResponse,
 	BatchOperationResponse,
 	ExcelPreviewResponse,
+	SortOption,
 } from "@dealership/common/types";
 
 const api = axios.create({
@@ -25,12 +26,21 @@ api.interceptors.response.use(
 );
 
 /**
- * Get all cars with pagination
+ * Get all cars with pagination and sorting
  */
-export async function getCars(offset = 0, limit = 50): Promise<GetAllCarsResponse> {
-	const response = await api.get<GetAllCarsResponse>("/cars", {
-		params: { offset, limit },
-	});
+export async function getCars(
+	offset = 0,
+	limit = 50,
+	sort?: SortOption[],
+): Promise<GetAllCarsResponse> {
+	const params: Record<string, string | number> = { offset, limit };
+
+	// Format sort array as comma-separated string: "field:direction,field:direction"
+	if (sort && sort.length > 0) {
+		params.sort = sort.map((s) => `${s.field}:${s.direction}`).join(",");
+	}
+
+	const response = await api.get<GetAllCarsResponse>("/cars", { params });
 	return response.data;
 }
 

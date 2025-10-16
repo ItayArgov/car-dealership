@@ -63,15 +63,39 @@ async function findMissingSkus(cars: CreateCarRequest[]): Promise<CarOperationFa
 }
 
 /**
- * Get all cars from the database with pagination
+ * Get all cars from the database with pagination and sorting
  */
-export async function getAllActiveCars(offset = 0, limit = 50): Promise<GetAllCarsResponse> {
+export async function getAllActiveCars(
+	offset = 0,
+	limit = 50,
+	sortOptions?: Array<{ field: string; direction: string }>,
+): Promise<GetAllCarsResponse> {
 	const filter = { deletedAt: null };
+
+	// Build MongoDB sort object
+	// Default sort by createdAt descending (newest first)
+	const sortObj: Record<string, 1 | -1> = {};
+	if (sortOptions && sortOptions.length > 0) {
+		for (const option of sortOptions) {
+			sortObj[option.field] = option.direction === "asc" ? 1 : -1;
+		}
+	} else {
+		// Default sort
+		sortObj.createdAt = -1;
+	}
+
 	const [docs, total] = await Promise.all([
-		carsCollection.find(filter).skip(offset).limit(limit).toArray(),
+		carsCollection.find(filter).sort(sortObj).skip(offset).limit(limit).toArray(),
 		carsCollection.countDocuments(filter),
 	]);
-	return { cars: toCarModels(docs), total, offset, limit };
+
+	return {
+		cars: toCarModels(docs),
+		total,
+		offset,
+		limit,
+		sort: sortOptions,
+	};
 }
 
 /**

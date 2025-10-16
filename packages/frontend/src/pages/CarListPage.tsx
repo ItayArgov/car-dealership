@@ -4,19 +4,31 @@ import { Container, Title, Group, Button, Box, Pagination, Text, Center } from "
 import { IconPlus, IconFileUpload } from "@tabler/icons-react";
 import { CarsTable } from "../components/CarsTable";
 import { useCars } from "../hooks/useCars";
+import type { SortOption } from "@dealership/common/types";
 
 export function CarListPage() {
 	const navigate = useNavigate();
 	const [page, setPage] = useState(1);
+	// Default sort by createdAt descending (newest first)
+	const [sort, setSort] = useState<SortOption[]>([{ field: "createdAt", direction: "desc" }]);
 
 	const limit = 20;
 	const offset = (page - 1) * limit;
-	const { data, isLoading } = useCars(offset, limit);
+	const { data, isLoading } = useCars(offset, limit, sort);
 
 	const total = data?.total || 0;
 	const totalPages = Math.ceil(total / limit);
 	const startItem = total === 0 ? 0 : offset + 1;
 	const endItem = Math.min(offset + limit, total);
+
+	/**
+	 * Handle sort change
+	 * Reset to page 1 when sort changes
+	 */
+	const handleSortChange = (newSort: SortOption[]) => {
+		setSort(newSort);
+		setPage(1);
+	};
 
 	return (
 		<Container size="xl" py="xl">
@@ -38,7 +50,12 @@ export function CarListPage() {
 				</Group>
 			</Box>
 
-			<CarsTable cars={data?.cars || []} isLoading={isLoading} />
+			<CarsTable
+				cars={data?.cars || []}
+				isLoading={isLoading}
+				sort={sort}
+				onSortChange={handleSortChange}
+			/>
 
 			{!isLoading && total > 0 && (
 				<Box mt="md">

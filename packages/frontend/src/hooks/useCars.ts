@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import type { SortOption } from "@dealership/common/types";
 import * as api from "../services/api";
 
 /**
- * Hook to fetch cars with pagination
+ * Hook to fetch cars with pagination and sorting
  */
-export function useCars(offset = 0, limit = 50) {
+export function useCars(offset = 0, limit = 50, sort?: SortOption[]) {
 	return useQuery({
-		queryKey: ["cars", offset, limit],
-		queryFn: () => api.getCars(offset, limit),
+		queryKey: ["cars", offset, limit, sort],
+		queryFn: () => api.getCars(offset, limit, sort),
 	});
 }
 

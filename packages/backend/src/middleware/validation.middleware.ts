@@ -1,5 +1,5 @@
 import { zValidator } from "@hono/zod-validator";
-import { createCarSchema, updateCarDataSchema } from "@dealership/common/schemas";
+import { createCarSchema, updateCarDataSchema, sortQuerySchema } from "@dealership/common/schemas";
 import { z } from "zod";
 
 export const validateCreateCar = zValidator("json", createCarSchema);
@@ -25,11 +25,12 @@ const excelFileSchema = z.object({
 export const validateExcelFile = zValidator("form", excelFileSchema);
 
 /**
- * Schema for pagination query parameters
+ * Schema for pagination and sorting query parameters
  */
 const paginationQuerySchema = z.object({
 	offset: z.coerce.number().int().min(0).default(0),
 	limit: z.coerce.number().int().min(1).max(100).default(50),
+	sort: sortQuerySchema,
 });
 
 export const validatePagination = zValidator("query", paginationQuerySchema);
