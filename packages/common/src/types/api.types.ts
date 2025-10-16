@@ -1,6 +1,8 @@
 import type { CreateCarInput, UpdateCarData } from "../schemas/car.schema";
 import type { Car } from "../models/Car";
 import type { CarDiff } from "../utils/diff";
+import type { CarFilters } from "../schemas/filter.schema";
+import type { SortField, SortDirection, SortOption } from "../schemas/sort.schema";
 
 export type CreateCarRequest = CreateCarInput;
 export type UpdateCarRequest = UpdateCarData;
@@ -21,14 +23,8 @@ export interface BatchOperationResponse {
 	failed: CarError[];
 }
 
-// Sorting types
-export type SortField = "sku" | "model" | "make" | "price" | "year" | "color" | "createdAt";
-export type SortDirection = "asc" | "desc";
-
-export interface SortOption {
-	field: SortField;
-	direction: SortDirection;
-}
+// Re-export sorting types from schemas (avoid duplication)
+export type { SortField, SortDirection, SortOption };
 
 export interface GetAllCarsResponse {
 	cars: Car[];
@@ -36,7 +32,11 @@ export interface GetAllCarsResponse {
 	offset: number;
 	limit: number;
 	sort?: SortOption[];
+	filters?: CarFilters;
 }
+
+// Export filter types
+export type { CarFilters } from "../schemas/filter.schema";
 
 export interface ParseCarDataResult {
 	validCars: CreateCarRequest[];

@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import type { SortOption } from "@dealership/common/types";
+import type { SortOption, CarFilters } from "@dealership/common/types";
 import * as api from "../services/api";
 
 /**
- * Hook to fetch cars with pagination and sorting
+ * Hook to fetch cars with pagination, sorting, and filtering
  */
-export function useCars(offset = 0, limit = 50, sort?: SortOption[]) {
+export function useCars(offset = 0, limit = 50, sort?: SortOption[], filters?: CarFilters) {
 	return useQuery({
-		queryKey: ["cars", offset, limit, sort],
-		queryFn: () => api.getCars(offset, limit, sort),
+		queryKey: ["cars", offset, limit, sort, filters],
+		queryFn: () => api.getCars(offset, limit, sort, filters),
 	});
 }
 

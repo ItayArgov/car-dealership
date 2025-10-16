@@ -13,12 +13,12 @@ import {
 const cars = new Hono();
 
 /**
- * GET /api/cars - Get all cars with pagination and sorting
+ * GET /api/cars - Get all cars with pagination, sorting, and filtering
  */
 cars.get("/", validatePagination, async (c) => {
 	try {
-		const { offset, limit, sort } = c.req.valid("query");
-		const result = await carService.getAllActiveCars(offset, limit, sort);
+		const { offset, limit, sort, filters } = c.req.valid("query");
+		const result = await carService.getAllActiveCars(offset, limit, sort, filters);
 
 		return c.json({
 			cars: result.cars,
@@ -26,6 +26,7 @@ cars.get("/", validatePagination, async (c) => {
 			offset,
 			limit,
 			sort: result.sort,
+			filters: result.filters,
 		});
 	} catch (error) {
 		console.error("Error fetching cars:", error);

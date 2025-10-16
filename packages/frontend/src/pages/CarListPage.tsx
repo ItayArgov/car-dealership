@@ -3,18 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { Container, Title, Group, Button, Box, Pagination, Text, Center } from "@mantine/core";
 import { IconPlus, IconFileUpload } from "@tabler/icons-react";
 import { CarsTable } from "../components/CarsTable";
+import { CarFilters } from "../components/CarFilters";
 import { useCars } from "../hooks/useCars";
-import type { SortOption } from "@dealership/common/types";
+import type { SortOption, CarFilters as CarFiltersType } from "@dealership/common/types";
 
 export function CarListPage() {
 	const navigate = useNavigate();
 	const [page, setPage] = useState(1);
 	// Default sort by createdAt descending (newest first)
 	const [sort, setSort] = useState<SortOption[]>([{ field: "createdAt", direction: "desc" }]);
+	// Filter state
+	const [filters, setFilters] = useState<CarFiltersType>({});
 
 	const limit = 20;
 	const offset = (page - 1) * limit;
-	const { data, isLoading } = useCars(offset, limit, sort);
+	const { data, isLoading } = useCars(offset, limit, sort, filters);
 
 	const total = data?.total || 0;
 	const totalPages = Math.ceil(total / limit);
@@ -27,6 +30,15 @@ export function CarListPage() {
 	 */
 	const handleSortChange = (newSort: SortOption[]) => {
 		setSort(newSort);
+		setPage(1);
+	};
+
+	/**
+	 * Handle filter change
+	 * Reset to page 1 when filters change
+	 */
+	const handleFiltersChange = (newFilters: CarFiltersType) => {
+		setFilters(newFilters);
 		setPage(1);
 	};
 
@@ -49,6 +61,8 @@ export function CarListPage() {
 					</Group>
 				</Group>
 			</Box>
+
+			<CarFilters filters={filters} onFiltersChange={handleFiltersChange} />
 
 			<CarsTable
 				cars={data?.cars || []}

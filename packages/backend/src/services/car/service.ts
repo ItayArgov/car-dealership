@@ -6,6 +6,7 @@ import type {
 	GetAllCarsResponse,
 	ExcelPreviewResponse,
 	CarUpdatePreview,
+	CarFilters,
 } from "@dealership/common/types";
 import { calculateCarDiff } from "@dealership/common";
 import type { CarDocument } from "~/types/car.types";
@@ -63,14 +64,66 @@ async function findMissingSkus(cars: CreateCarRequest[]): Promise<CarOperationFa
 }
 
 /**
- * Get all cars from the database with pagination and sorting
+ * Build MongoDB filter object from CarFilters
+ */
+function buildFilterQuery(filters?: CarFilters): Record<string, unknown> {
+	const query: Record<string, unknown> = { deletedAt: null };
+
+	if (!filters) {
+		return query;
+	}
+
+	// Text filters - case-insensitive partial match
+	if (filters.sku) {
+		query.sku = { $regex: filters.sku, $options: "i" };
+	}
+	if (filters.model) {
+		query.model = { $regex: filters.model, $options: "i" };
+	}
+	if (filters.make) {
+		query.make = { $regex: filters.make, $options: "i" };
+	}
+
+	// Price range filter
+	if (filters.priceMin !== undefined || filters.priceMax !== undefined) {
+		query.price = {};
+		if (filters.priceMin !== undefined) {
+			(query.price as Record<string, number>).$gte = filters.priceMin;
+		}
+		if (filters.priceMax !== undefined) {
+			(query.price as Record<string, number>).$lte = filters.priceMax;
+		}
+	}
+
+	// Year range filter
+	if (filters.yearMin !== undefined || filters.yearMax !== undefined) {
+		query.year = {};
+		if (filters.yearMin !== undefined) {
+			(query.year as Record<string, number>).$gte = filters.yearMin;
+		}
+		if (filters.yearMax !== undefined) {
+			(query.year as Record<string, number>).$lte = filters.yearMax;
+		}
+	}
+
+	// Color filter - exact match
+	if (filters.color) {
+		query.color = filters.color;
+	}
+
+	return query;
+}
+
+/**
+ * Get all cars from the database with pagination, sorting, and filtering
  */
 export async function getAllActiveCars(
 	offset = 0,
 	limit = 50,
-	sortOptions?: Array<{ field: string; direction: string }>,
+	sortOptions?: GetAllCarsResponse["sort"],
+	filters?: CarFilters,
 ): Promise<GetAllCarsResponse> {
-	const filter = { deletedAt: null };
+	const filter = buildFilterQuery(filters);
 
 	// Build MongoDB sort object
 	// Default sort by createdAt descending (newest first)
@@ -95,6 +148,7 @@ export async function getAllActiveCars(
 		offset,
 		limit,
 		sort: sortOptions,
+		filters,
 	};
 }
 

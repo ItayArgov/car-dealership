@@ -7,6 +7,7 @@ import type {
 	BatchOperationResponse,
 	ExcelPreviewResponse,
 	SortOption,
+	CarFilters,
 } from "@dealership/common/types";
 
 const api = axios.create({
@@ -26,18 +27,31 @@ api.interceptors.response.use(
 );
 
 /**
- * Get all cars with pagination and sorting
+ * Get all cars with pagination, sorting, and filtering
  */
 export async function getCars(
 	offset = 0,
 	limit = 50,
 	sort?: SortOption[],
+	filters?: CarFilters,
 ): Promise<GetAllCarsResponse> {
 	const params: Record<string, string | number> = { offset, limit };
 
 	// Format sort array as comma-separated string: "field:direction,field:direction"
 	if (sort && sort.length > 0) {
 		params.sort = sort.map((s) => `${s.field}:${s.direction}`).join(",");
+	}
+
+	// Add filter parameters
+	if (filters) {
+		if (filters.sku) params.sku = filters.sku;
+		if (filters.model) params.model = filters.model;
+		if (filters.make) params.make = filters.make;
+		if (filters.priceMin !== undefined) params.priceMin = filters.priceMin;
+		if (filters.priceMax !== undefined) params.priceMax = filters.priceMax;
+		if (filters.yearMin !== undefined) params.yearMin = filters.yearMin;
+		if (filters.yearMax !== undefined) params.yearMax = filters.yearMax;
+		if (filters.color) params.color = filters.color;
 	}
 
 	const response = await api.get<GetAllCarsResponse>("/cars", { params });
